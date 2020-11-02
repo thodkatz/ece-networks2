@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import com.gargoylesoftware.htmlunit.WebClient;
 
 class Client {
 		public static void main (String[] args) throws Exception {
@@ -11,15 +12,17 @@ class Client {
 				}
 
 				
+				WebClient server = new WebClient();
+
 				// INIT 
 				// TODO create a script that is scraping from ithaki website the request code and the ports.
 				// DatagramSocket sendSocket = new DatagramSocket();
 				byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
 				InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-				DatagramSocket sendSocket = new DatagramSocket(48028, clientAddress); 
-				String requestCode ="E6199";
+				DatagramSocket sendSocket = new DatagramSocket(48020, clientAddress); 
+				String requestCode ="E8511";
 				byte[] txbuffer = requestCode.getBytes();
-				int serverPort = 38028;
+				int serverPort = 38020;
 				byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
 				InetAddress hostAddress = InetAddress.getByAddress(hostIP);
 				// alternative InetAddress hostAddress = InetAddress.getByName("ithaki.eng.auth.gr") (doesn't worked)
