@@ -16,7 +16,7 @@ class Client {
 				// DatagramSocket sendSocket = new DatagramSocket();
 				byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
 				InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-				DatagramSocket sendSocket = new DatagramSocket(48028, clientAddress); // bypassing port forwarding. Binding the sendSocket to a specified socket
+				DatagramSocket sendSocket = new DatagramSocket(48028, clientAddress); 
 				String requestCode ="E6199";
 				byte[] txbuffer = requestCode.getBytes();
 				int serverPort = 38028;
@@ -24,8 +24,6 @@ class Client {
 				InetAddress hostAddress = InetAddress.getByAddress(hostIP);
 				// alternative InetAddress hostAddress = InetAddress.getByName("ithaki.eng.auth.gr") (doesn't worked)
 				DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
-				//sendSocket.connect(hostAddress, serverPort);
-				System.out.println("So my local socket is: " + sendSocket.getLocalSocketAddress() + " and I want to connect to this socket: " + sendSocket.getRemoteSocketAddress());
 				
 				//int clientPort = 48013;
 				//DatagramSocket receiveSocket = new DatagramSocket(clientPort);
