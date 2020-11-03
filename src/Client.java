@@ -23,7 +23,7 @@ class Client {
 				InetAddress hostAddress = InetAddress.getByAddress(hostIP);
 				DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
 				sendSocket.setSoTimeout(4000);
-				byte[] rxbuffer = new byte[2048];
+				byte[] rxbuffer = new byte[128];
 				DatagramPacket receivePacket= new DatagramPacket(rxbuffer, rxbuffer.length);
 
 				System.out.println("Echo application...\n");
@@ -86,6 +86,12 @@ class Client {
 							long timeAfter = System.currentTimeMillis();
 							System.out.println("My system time, when the response received, is: " + timeAfter + " . So the time required to reveive a packet is: " + (timeAfter - timeBefore)/(float)1000 + " seconds"); 
 							dataImage.write(receivePacket.getData());
+							System.out.println("The received bytes in hexadecimal format are:");
+							for (byte i : receivePacket.getData()) {
+									String hexa = String.format("%02X", i);
+									System.out.print(hexa);
+							}
+							System.out.println("\nNext packet:");
 							timeBefore = System.currentTimeMillis();
 						}
 						catch (Exception x) {
@@ -93,6 +99,8 @@ class Client {
 								break;
 						}
 				}	
+				// remove last bytes until ff d9 from the ByteArrayOutputStream
+				// do something
 
 				byte[] dataImageBytes = dataImage.toByteArray();
 				for (byte i : dataImageBytes) {
@@ -100,7 +108,7 @@ class Client {
 					System.out.print(hexa);
 				}
 
-				System.out.println("How many bytes is the image? " + dataImageBytes.length);
+				System.out.println("\nHow many bytes is the image? " + dataImageBytes.length);
 				
 				File imageFile = new File("ithaki_image.jpg");
 				FileOutputStream fos = null;
@@ -117,5 +125,10 @@ class Client {
 								fos.close(); // close the OutputStream
 						}
 				}
+				
+				// remove the unwanted last bytes until ff d9
+				//i = dataImageBytes.length - 1; // last element
+				//while (dataImageBytes(i) != 0xd9)
+
 		}
 }
