@@ -15,14 +15,14 @@ class Client {
 				// TODO create a script that is scraping from ithaki website the request code and the ports.
 				byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
 				InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-				DatagramSocket sendSocket = new DatagramSocket(48001, clientAddress); 
-				String requestCode ="E3092";
+				DatagramSocket sendSocket = new DatagramSocket(48022, clientAddress); 
+				String requestCode ="E1170";
 				byte[] txbuffer = requestCode.getBytes();
-				int serverPort = 38001;
+				int serverPort = 38022;
 				byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
 				InetAddress hostAddress = InetAddress.getByAddress(hostIP);
 				DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
-				sendSocket.setSoTimeout(4000);
+				sendSocket.setSoTimeout(6000);
 				byte[] rxbuffer = new byte[128];
 				DatagramPacket receivePacket= new DatagramPacket(rxbuffer, rxbuffer.length);
 
@@ -31,7 +31,7 @@ class Client {
 				for(int i = 0; i<=4 ; i++) {
 					// ACTION
 					sendSocket.send(sendPacket);
-					//System.out.println("The port that I opened to talk to ithaki is: " + sendSocket.getLocalPort() + " and my local address is: " + sendSocket.getLocalAddress());
+					System.out.println("The port that I opened to talk to ithaki is: " + sendSocket.getLocalPort() + " and my local address is: " + sendSocket.getLocalAddress());
 
 					requestCode = "E0000"; // disable server lag to respond
 					txbuffer = requestCode.getBytes();
@@ -51,7 +51,7 @@ class Client {
 
 
 				System.out.println("\nTemperature measurements...");
-				requestCode = "E3092T00";
+				requestCode = "E1170T00";
 				txbuffer = requestCode.getBytes();
 				sendPacket.setData(txbuffer, 0, txbuffer.length);
 				for(int i = 0; i<=4 ; i++) {
@@ -72,7 +72,7 @@ class Client {
 
 
 				System.out.println("\nImage application...");
-				requestCode = "M5068";
+				requestCode = "M4878";
 				txbuffer = requestCode.getBytes();
 				sendPacket.setData(txbuffer, 0, txbuffer.length);
 				sendSocket.send(sendPacket);	
@@ -85,17 +85,26 @@ class Client {
 							sendSocket.receive(receivePacket);
 							long timeAfter = System.currentTimeMillis();
 							System.out.println("My system time, when the response received, is: " + timeAfter + " . So the time required to reveive a packet is: " + (timeAfter - timeBefore)/(float)1000 + " seconds"); 
-							dataImage.write(receivePacket.getData());
 							System.out.println("The received bytes in hexadecimal format are:");
-							for (byte i : receivePacket.getData()) {
-									String hexa = String.format("%02X", i);
+							//for (byte i : receivePacket.getData()) { // for each byte you receive
+							byte[] dataByte = receivePacket.getData();
+							for (int i = 0; i<receivePacket.getData().length; i++) {
+									String hexa = String.format("%02X", dataByte[i]);
 									System.out.print(hexa);
+									dataImage.write(dataByte);
+									if ((String.format("%02X", dataByte[i]).equals("D9")) && (i!=0)) {
+										if ((String.format("%02X", dataByte[i-1]).equals("FF"))) {
+											System.out.println("THE BREAK IS EXECUTED");
+											break; // stop writing when EOF
+										}
+									}
 							}
+							//dataImage.write(receivePacket.getData()); // This is way more efficient though
 							System.out.println("\nNext packet:");
 							timeBefore = System.currentTimeMillis();
 						}
 						catch (Exception x) {
-								System.out.println(x);
+								System.out.println(x + ". Probably all the requested packets for the image has been sent.");
 								break;
 						}
 				}	
