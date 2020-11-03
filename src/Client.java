@@ -15,14 +15,14 @@ class Client {
 				// TODO create a script that is scraping from ithaki website the request code and the ports.
 				byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
 				InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-				DatagramSocket sendSocket = new DatagramSocket(48024, clientAddress); 
-				String requestCode = "E4268";
+				DatagramSocket sendSocket = new DatagramSocket(48001, clientAddress); 
+				String requestCode = "E2768";
 				byte[] txbuffer = requestCode.getBytes();
-				int serverPort = 38024;
+				int serverPort = 38001;
 				byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
 				InetAddress hostAddress = InetAddress.getByAddress(hostIP);
 				DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
-				sendSocket.setSoTimeout(2200);
+				sendSocket.setSoTimeout(3000);
 				byte[] rxbuffer = new byte[1024];
 				DatagramPacket receivePacket= new DatagramPacket(rxbuffer, rxbuffer.length);
 
@@ -51,7 +51,7 @@ class Client {
 
 
 				System.out.println("\nTemperature measurements...");
-				requestCode = "E4268T00";
+				requestCode = "E2768T00";
 				txbuffer = requestCode.getBytes();
 				sendPacket.setData(txbuffer, 0, txbuffer.length);
 				for(int i = 0; i<=4 ; i++) {
@@ -70,15 +70,22 @@ class Client {
 					System.out.println("Ithaki responded with: " + message0);
 				}			
 
-				//String[] imageRequestOptions = {"CAM=FIX", "CAM=PTZ"};
+				//String[] imageRequestOptions = {"CAM=FIX", "CAM=PTZ", "CAM=PTZDIR=L", "CAM=PTZDIR=U", "CAM=PTZDIR=D", "CAM=PTZDIR=R"};
+				//String[] directionOptions = {"R", "R", "L", "L", "L", "L", "R", "R","U", "U","D", "D", "D","D","U", "U"};
+				//int numImage = 0;
+				//for (String dir : directionOptions) {
+				//	numImage++;
 				for(int numImage = 0; numImage<5; numImage++) {
 
 					System.out.println("\nImage application...");
-					requestCode = "M8580CAMUDP=1024";
+					//requestCode = "M4306CAM=PTZUDP=1024DIR=" + dir;
+					requestCode = "M4306UDP=1024";
 					txbuffer = requestCode.getBytes();
 					sendPacket.setData(txbuffer, 0, txbuffer.length);
 					sendSocket.send(sendPacket);	
-					
+					System.out.println("I am sleeping... Camera needs time to readjust");
+					Thread.sleep(5000); // sleep in order for the camera to readjust
+
 					ByteArrayOutputStream dataImage = new ByteArrayOutputStream();
 					int countPackets = 0;
 					long timeBefore = System.currentTimeMillis();
@@ -114,18 +121,19 @@ class Client {
 									break;
 							}
 					}	
-					System.out.println("Probably all the requested packets for the image has been sent. Total number of packages: " + (countPackets-1));
 					long timeAfter = System.currentTimeMillis(); // get the time when the image is received in bytes
 					
+					System.out.println("Complete byte content of the image file in hexadecimal format:");
 					byte[] dataImageBytes = dataImage.toByteArray();
 					for (byte i : dataImageBytes) {
 						String hexa = String.format("%02X", i); // print hexadecimal the content of the byte array
 						System.out.print(hexa);
 					}
+
+					System.out.println("\n\nTotal number of packages: " + (countPackets-1));
+					System.out.println("How many Kbytes is the image? " + dataImageBytes.length/(float)1000);
 					
-					System.out.println("\nHow many Kbytes is the image? " + dataImageBytes.length/(float)1000);
-					
-					File imageFile = new File("../media/ithaki_image_No" + numImage + ".jpg");
+					File imageFile = new File("../media/image/4_11_2020/ithaki_image_FIX_No" + numImage + ".jpg");
 					FileOutputStream fos = null;
 					try {
 							fos = new FileOutputStream(imageFile);
@@ -153,6 +161,6 @@ class Client {
 				sendPacket.setData(txbuffer, 0, txbuffer.length);
 
 
-				sendSocket.send(sendPacket);	
+				//sendSocket.send(sendPacket);	
 		}
 }
