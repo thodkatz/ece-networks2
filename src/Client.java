@@ -15,14 +15,14 @@ class Client {
 				// TODO create a script that is scraping from ithaki website the request code and the ports.
 				byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
 				InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-				DatagramSocket sendSocket = new DatagramSocket(48010, clientAddress); 
-				String requestCode = "E8461";
+				DatagramSocket sendSocket = new DatagramSocket(48024, clientAddress); 
+				String requestCode = "E4268";
 				byte[] txbuffer = requestCode.getBytes();
-				int serverPort = 38010;
+				int serverPort = 38024;
 				byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
 				InetAddress hostAddress = InetAddress.getByAddress(hostIP);
 				DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
-				sendSocket.setSoTimeout(6000);
+				sendSocket.setSoTimeout(2500);
 				byte[] rxbuffer = new byte[128];
 				DatagramPacket receivePacket= new DatagramPacket(rxbuffer, rxbuffer.length);
 
@@ -51,7 +51,7 @@ class Client {
 
 
 				System.out.println("\nTemperature measurements...");
-				requestCode = "E8461T00";
+				requestCode = "E4268T00";
 				txbuffer = requestCode.getBytes();
 				sendPacket.setData(txbuffer, 0, txbuffer.length);
 				for(int i = 0; i<=4 ; i++) {
@@ -70,74 +70,89 @@ class Client {
 					System.out.println("Ithaki responded with: " + message0);
 				}			
 
+				for(int numImage = 0; numImage<5; numImage++) {
 
-				System.out.println("\nImage application...");
-				requestCode = "M1501";
-				txbuffer = requestCode.getBytes();
-				sendPacket.setData(txbuffer, 0, txbuffer.length);
-				sendSocket.send(sendPacket);	
-				long timeBefore = System.currentTimeMillis();
-				System.out.println("My system time, when the request is sent, is: " + timeBefore);
-			
-				ByteArrayOutputStream dataImage = new ByteArrayOutputStream();
-				int countPackets = 0;
-				for (;;) {
-						try {
-							sendSocket.receive(receivePacket);
-
-							long timeAfter = System.currentTimeMillis();
-							System.out.println("My system time, when the response received, is: " + timeAfter + " . So the time required to reveive a packet is: " + (timeAfter - timeBefore)/(float)1000 + " seconds"); 
-							timeBefore = System.currentTimeMillis();
-
-							System.out.println("Packet No" + countPackets + ". The received bytes in hexadecimal format are:");
-							byte[] dataByte = receivePacket.getData();
-							for (int i = 0; i<receivePacket.getData().length; i++) {
-									String hexa = String.format("%02X", dataByte[i]); // convert bytes to hexa string 
-									System.out.print(hexa);
-									dataImage.write(dataByte[i]);
-									if ((String.format("%02X", dataByte[i]).equals("D9")) && (i!=0)) {
-										if ((String.format("%02X", dataByte[i-1]).equals("FF"))) {
-											break; // stop writing when EOF
+					System.out.println("\nImage application...");
+					requestCode = "M8580";
+					txbuffer = requestCode.getBytes();
+					sendPacket.setData(txbuffer, 0, txbuffer.length);
+					sendSocket.send(sendPacket);	
+					
+					ByteArrayOutputStream dataImage = new ByteArrayOutputStream();
+					int countPackets = 0;
+					long timeBefore = System.currentTimeMillis();
+					long timeBeforePerPacket = System.currentTimeMillis();
+					//System.out.println("My system time, when the request is sent, is: " + timeBefore);
+					for (;;) {
+							try {
+								sendSocket.receive(receivePacket);
+					
+								long timeAfterPerPacket = System.currentTimeMillis();
+								System.out.println("The time required to reveive a packet is: " + (timeAfterPerPacket - timeBeforePerPacket)/(float)1000 + " seconds"); 
+								timeBeforePerPacket = System.currentTimeMillis();
+					
+								System.out.println("Packet No" + countPackets + ". The received bytes in hexadecimal format are:");
+								byte[] dataByte = receivePacket.getData();
+								for (int i = 0; i<receivePacket.getData().length; i++) {
+										String hexa = String.format("%02X", dataByte[i]); // convert bytes to hexa string 
+										System.out.print(hexa);
+										dataImage.write(dataByte[i]);
+										if ((String.format("%02X", dataByte[i]).equals("D9")) && (i!=0)) {
+											if ((String.format("%02X", dataByte[i-1]).equals("FF"))) {
+												break; // stop writing when EOF
+											}
 										}
-									}
+								}
+								//dataImage.write(receivePacket.getData()); // This is way more efficient though
+								System.out.println();
+								countPackets += 1;
 							}
-							//dataImage.write(receivePacket.getData()); // This is way more efficient though
-							System.out.println();
-							countPackets += 1;
-						}
-						catch (Exception x) {
-								System.out.println(x + ". Probably all the requested packets for the image has been sent. Total number of packages: " + (countPackets-1));
-								break;
-						}
-				}	
-
-				byte[] dataImageBytes = dataImage.toByteArray();
-				for (byte i : dataImageBytes) {
-					String hexa = String.format("%02X", i); // print hexadecimal the content of the byte array
-					System.out.print(hexa);
-				}
-
-				System.out.println("\nHow many bytes is the image? " + dataImageBytes.length);
-				
-				File imageFile = new File("ithaki_image.jpg");
-				FileOutputStream fos = null;
-				try {
-						fos = new FileOutputStream(imageFile);
-						fos.write(dataImageBytes);
-						System.out.println("File has been written successfully");
-				}
-				catch (Exception x) {
-						System.out.println("Image application error when writing the file:" + x);
-				}
-				finally {
-						if (fos != null) {
-								fos.close(); // close the OutputStream
-						}
+							catch (Exception x) {
+									System.out.println(x + ". Probably all the requested packets for the image has been sent. Total number of packages: " + (countPackets-1));
+									break;
+							}
+					}	
+					long timeAfter = System.currentTimeMillis(); // get the time when the image is received in bytes
+					
+					byte[] dataImageBytes = dataImage.toByteArray();
+					for (byte i : dataImageBytes) {
+						String hexa = String.format("%02X", i); // print hexadecimal the content of the byte array
+						System.out.print(hexa);
+					}
+					
+					System.out.println("\nHow many bytes is the image? " + dataImageBytes.length);
+					
+					File imageFile = new File("../media/ithaki_image_no" + numImage + ".jpg");
+					FileOutputStream fos = null;
+					try {
+							fos = new FileOutputStream(imageFile);
+							fos.write(dataImageBytes);
+							System.out.println("File has been written successfully");
+					}
+					catch (Exception x) {
+							System.out.println("Image application error when writing the file:" + x);
+					}
+					finally {
+							if (fos != null) {
+									fos.close(); // close the OutputStream
+							}
+					}
+					timeAfter = System.currentTimeMillis(); // get the time when the file is ready
+					System.out.println("Total amount of time to receive a frame: " + (timeAfter - timeBefore)/(float)100 + " seconds");
+					System.out.println("Total amount of time to receive and write a frame in a .jpg file: " + (timeAfter - timeBefore)/(float)100 + " seconds");
+					
 				}
 
 
 				System.out.println("\nAudio application");
-				
+				requestCode = "A7163";
+				txbuffer = requestCode.getBytes();
+				sendPacket.setData(txbuffer, 0, txbuffer.length);
+
+
+				sendSocket.send(sendPacket);	
+				long timeBefore = System.currentTimeMillis();
+				System.out.println("My system time, when the request is sent, is: " + timeBefore);
 
 		}
 }
