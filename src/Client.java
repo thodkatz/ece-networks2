@@ -22,8 +22,8 @@ class Client {
 				byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
 				InetAddress hostAddress = InetAddress.getByAddress(hostIP);
 				DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
-				sendSocket.setSoTimeout(2500);
-				byte[] rxbuffer = new byte[128];
+				sendSocket.setSoTimeout(2200);
+				byte[] rxbuffer = new byte[1024];
 				DatagramPacket receivePacket= new DatagramPacket(rxbuffer, rxbuffer.length);
 
 				System.out.println("Echo application...\n");
@@ -70,10 +70,11 @@ class Client {
 					System.out.println("Ithaki responded with: " + message0);
 				}			
 
+				//String[] imageRequestOptions = {"CAM=FIX", "CAM=PTZ"};
 				for(int numImage = 0; numImage<5; numImage++) {
 
 					System.out.println("\nImage application...");
-					requestCode = "M8580";
+					requestCode = "M8580CAMUDP=1024";
 					txbuffer = requestCode.getBytes();
 					sendPacket.setData(txbuffer, 0, txbuffer.length);
 					sendSocket.send(sendPacket);	
@@ -83,6 +84,7 @@ class Client {
 					long timeBefore = System.currentTimeMillis();
 					long timeBeforePerPacket = System.currentTimeMillis();
 					//System.out.println("My system time, when the request is sent, is: " + timeBefore);
+					outerloop:
 					for (;;) {
 							try {
 								sendSocket.receive(receivePacket);
@@ -99,7 +101,7 @@ class Client {
 										dataImage.write(dataByte[i]);
 										if ((String.format("%02X", dataByte[i]).equals("D9")) && (i!=0)) {
 											if ((String.format("%02X", dataByte[i-1]).equals("FF"))) {
-												break; // stop writing when EOF
+												break outerloop; // stop writing when EOF
 											}
 										}
 								}
@@ -108,10 +110,11 @@ class Client {
 								countPackets += 1;
 							}
 							catch (Exception x) {
-									System.out.println(x + ". Probably all the requested packets for the image has been sent. Total number of packages: " + (countPackets-1));
+									System.out.println(x);
 									break;
 							}
 					}	
+					System.out.println("Probably all the requested packets for the image has been sent. Total number of packages: " + (countPackets-1));
 					long timeAfter = System.currentTimeMillis(); // get the time when the image is received in bytes
 					
 					byte[] dataImageBytes = dataImage.toByteArray();
@@ -120,9 +123,9 @@ class Client {
 						System.out.print(hexa);
 					}
 					
-					System.out.println("\nHow many bytes is the image? " + dataImageBytes.length);
+					System.out.println("\nHow many Kbytes is the image? " + dataImageBytes.length/(float)1000);
 					
-					File imageFile = new File("../media/ithaki_image_no" + numImage + ".jpg");
+					File imageFile = new File("../media/ithaki_image_No" + numImage + ".jpg");
 					FileOutputStream fos = null;
 					try {
 							fos = new FileOutputStream(imageFile);
@@ -137,9 +140,9 @@ class Client {
 									fos.close(); // close the OutputStream
 							}
 					}
+					System.out.println("Total amount of time to receive a frame: " + (timeAfter - timeBefore)/(float)1000 + " seconds");
 					timeAfter = System.currentTimeMillis(); // get the time when the file is ready
-					System.out.println("Total amount of time to receive a frame: " + (timeAfter - timeBefore)/(float)100 + " seconds");
-					System.out.println("Total amount of time to receive and write a frame in a .jpg file: " + (timeAfter - timeBefore)/(float)100 + " seconds");
+					System.out.println("Total amount of time to receive and write a frame in a .jpg file: " + (timeAfter - timeBefore)/(float)1000 + " seconds");
 					
 				}
 
@@ -151,8 +154,5 @@ class Client {
 
 
 				sendSocket.send(sendPacket);	
-				long timeBefore = System.currentTimeMillis();
-				System.out.println("My system time, when the request is sent, is: " + timeBefore);
-
 		}
 }
