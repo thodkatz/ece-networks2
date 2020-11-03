@@ -15,10 +15,10 @@ class Client {
 				// TODO create a script that is scraping from ithaki website the request code and the ports.
 				byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
 				InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-				DatagramSocket sendSocket = new DatagramSocket(48022, clientAddress); 
-				String requestCode ="E1170";
+				DatagramSocket sendSocket = new DatagramSocket(48010, clientAddress); 
+				String requestCode = "E8461";
 				byte[] txbuffer = requestCode.getBytes();
-				int serverPort = 38022;
+				int serverPort = 38010;
 				byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
 				InetAddress hostAddress = InetAddress.getByAddress(hostIP);
 				DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
@@ -31,7 +31,7 @@ class Client {
 				for(int i = 0; i<=4 ; i++) {
 					// ACTION
 					sendSocket.send(sendPacket);
-					System.out.println("The port that I opened to talk to ithaki is: " + sendSocket.getLocalPort() + " and my local address is: " + sendSocket.getLocalAddress());
+					System.out.println("The request code is: "+ requestCode + "\nThe destination port is: " + serverPort + "\nThe port that I opened to listen from ithaki is: " + sendSocket.getLocalPort() + "\nMy local address is: " + sendSocket.getLocalAddress());
 
 					requestCode = "E0000"; // disable server lag to respond
 					txbuffer = requestCode.getBytes();
@@ -51,7 +51,7 @@ class Client {
 
 
 				System.out.println("\nTemperature measurements...");
-				requestCode = "E1170T00";
+				requestCode = "E8461T00";
 				txbuffer = requestCode.getBytes();
 				sendPacket.setData(txbuffer, 0, txbuffer.length);
 				for(int i = 0; i<=4 ; i++) {
@@ -89,7 +89,7 @@ class Client {
 							//for (byte i : receivePacket.getData()) { // for each byte you receive
 							byte[] dataByte = receivePacket.getData();
 							for (int i = 0; i<receivePacket.getData().length; i++) {
-									String hexa = String.format("%02X", dataByte[i]);
+									String hexa = String.format("%02X", dataByte[i]); // convert bytes to hexa string 
 									System.out.print(hexa);
 									dataImage.write(dataByte);
 									if ((String.format("%02X", dataByte[i]).equals("D9")) && (i!=0)) {
@@ -108,8 +108,6 @@ class Client {
 								break;
 						}
 				}	
-				// remove last bytes until ff d9 from the ByteArrayOutputStream
-				// do something
 
 				byte[] dataImageBytes = dataImage.toByteArray();
 				for (byte i : dataImageBytes) {
@@ -127,17 +125,17 @@ class Client {
 						System.out.println("File has been written successfully");
 				}
 				catch (Exception x) {
-						System.out.println("Image application error:" + x);
+						System.out.println("Image application error when writing the file:" + x);
 				}
 				finally {
 						if (fos != null) {
 								fos.close(); // close the OutputStream
 						}
 				}
+
+
+				System.out.println("\nAudio application");
 				
-				// remove the unwanted last bytes until ff d9
-				//i = dataImageBytes.length - 1; // last element
-				//while (dataImageBytes(i) != 0xd9)
 
 		}
 }
