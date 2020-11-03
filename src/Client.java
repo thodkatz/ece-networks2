@@ -72,7 +72,7 @@ class Client {
 
 
 				System.out.println("\nImage application...");
-				requestCode = "M4878";
+				requestCode = "M1501";
 				txbuffer = requestCode.getBytes();
 				sendPacket.setData(txbuffer, 0, txbuffer.length);
 				sendSocket.send(sendPacket);	
@@ -80,31 +80,33 @@ class Client {
 				System.out.println("My system time, when the request is sent, is: " + timeBefore);
 			
 				ByteArrayOutputStream dataImage = new ByteArrayOutputStream();
+				int countPackets = 0;
 				for (;;) {
 						try {
 							sendSocket.receive(receivePacket);
+
 							long timeAfter = System.currentTimeMillis();
 							System.out.println("My system time, when the response received, is: " + timeAfter + " . So the time required to reveive a packet is: " + (timeAfter - timeBefore)/(float)1000 + " seconds"); 
-							System.out.println("The received bytes in hexadecimal format are:");
-							//for (byte i : receivePacket.getData()) { // for each byte you receive
+							timeBefore = System.currentTimeMillis();
+
+							System.out.println("Packet No" + countPackets + ". The received bytes in hexadecimal format are:");
 							byte[] dataByte = receivePacket.getData();
 							for (int i = 0; i<receivePacket.getData().length; i++) {
 									String hexa = String.format("%02X", dataByte[i]); // convert bytes to hexa string 
 									System.out.print(hexa);
-									dataImage.write(dataByte);
+									dataImage.write(dataByte[i]);
 									if ((String.format("%02X", dataByte[i]).equals("D9")) && (i!=0)) {
 										if ((String.format("%02X", dataByte[i-1]).equals("FF"))) {
-											System.out.println("THE BREAK IS EXECUTED");
 											break; // stop writing when EOF
 										}
 									}
 							}
 							//dataImage.write(receivePacket.getData()); // This is way more efficient though
-							System.out.println("\nNext packet:");
-							timeBefore = System.currentTimeMillis();
+							System.out.println();
+							countPackets += 1;
 						}
 						catch (Exception x) {
-								System.out.println(x + ". Probably all the requested packets for the image has been sent.");
+								System.out.println(x + ". Probably all the requested packets for the image has been sent. Total number of packages: " + (countPackets-1));
 								break;
 						}
 				}	
