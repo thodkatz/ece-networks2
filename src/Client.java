@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.lang.System;
+import java.awt.Desktop;
 
 class Client {
 		public static void main (String[] args) throws Exception {
@@ -10,15 +11,35 @@ class Client {
 				if (args.length == 2) {
 					System.out.println("This is the first arguement " + args[0] + " " + "and this is the second arguement " + args[1]); 
 				}
+				String[] directionOptions = {"L", "D", "U", "R"};
+				int flag = 0;
+				for (String i : directionOptions) {
+					if (i.equals(args[0])) {
+						flag = 1;
+						System.out.println("Valid direction: " + args[0]);
+						break;
+					}	
+				}
+				if (flag == 0) {
+					System.out.println("Try again, wrong direction. Available options are: L, R, U, D");
+					return;
+				}
+				if (Integer.parseInt(args[1])>=1 && Integer.parseInt(args[1])<=100) {
+					System.out.println("How many times? " + Integer.parseInt(args[1]) + ". Valid option");
+				}
+				else {
+					System.out.println("Invalid input. Range should be 1-100");
+					return;
+				}
 
 				// INIT 
 				// TODO create a script that is scraping from ithaki website the request code and the ports.
 				byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
 				InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-				DatagramSocket sendSocket = new DatagramSocket(48001, clientAddress); 
-				String requestCode = "E2768";
+				DatagramSocket sendSocket = new DatagramSocket(48012, clientAddress); 
+				String requestCode = "E3625";
 				byte[] txbuffer = requestCode.getBytes();
-				int serverPort = 38001;
+				int serverPort = 38012;
 				byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
 				InetAddress hostAddress = InetAddress.getByAddress(hostIP);
 				DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
@@ -51,7 +72,7 @@ class Client {
 
 
 				System.out.println("\nTemperature measurements...");
-				requestCode = "E2768T00";
+				requestCode = "E3625T00";
 				txbuffer = requestCode.getBytes();
 				sendPacket.setData(txbuffer, 0, txbuffer.length);
 				for(int i = 0; i<=4 ; i++) {
@@ -75,16 +96,21 @@ class Client {
 				//int numImage = 0;
 				//for (String dir : directionOptions) {
 				//	numImage++;
-				for(int numImage = 0; numImage<5; numImage++) {
+				for(int numImage = 0; numImage<Integer.parseInt(args[1]); numImage++) {
 
 					System.out.println("\nImage application...");
-					//requestCode = "M4306CAM=PTZUDP=1024DIR=" + dir;
-					requestCode = "M4306UDP=1024";
+					requestCode = "M2834CAM=PTZUDP=1024DIR=" + args[0];
+					//requestCode = "M2834CCAM=PTZUDP=1024DIR=R";
+					System.out.println("The request code is " + requestCode);
 					txbuffer = requestCode.getBytes();
 					sendPacket.setData(txbuffer, 0, txbuffer.length);
 					sendSocket.send(sendPacket);	
 					System.out.println("I am sleeping... Camera needs time to readjust");
-					Thread.sleep(5000); // sleep in order for the camera to readjust
+					Thread.sleep(5000); // sleep in order for the camera to readjust	
+
+					if (numImage != (Integer.parseInt(args[1])-1)){
+							continue; // readjust the camera as many time is requested via the command line arguement. Print only the result, the last request
+					}
 
 					ByteArrayOutputStream dataImage = new ByteArrayOutputStream();
 					int countPackets = 0;
@@ -133,7 +159,7 @@ class Client {
 					System.out.println("\n\nTotal number of packages: " + (countPackets-1));
 					System.out.println("How many Kbytes is the image? " + dataImageBytes.length/(float)1000);
 					
-					File imageFile = new File("../media/image/4_11_2020/ithaki_image_FIX_No" + numImage + ".jpg");
+					File imageFile = new File("../media/image/sandbox/ithaki_image_PTZ_No" + numImage + ".jpg");
 					FileOutputStream fos = null;
 					try {
 							fos = new FileOutputStream(imageFile);
@@ -151,8 +177,12 @@ class Client {
 					System.out.println("Total amount of time to receive a frame: " + (timeAfter - timeBefore)/(float)1000 + " seconds");
 					timeAfter = System.currentTimeMillis(); // get the time when the file is ready
 					System.out.println("Total amount of time to receive and write a frame in a .jpg file: " + (timeAfter - timeBefore)/(float)1000 + " seconds");
-					
+					Desktop desktop = Desktop.getDesktop();
+					if (imageFile.exists()) {
+						desktop.open(imageFile);
+					}
 				}
+				
 
 
 				System.out.println("\nAudio application");
@@ -162,5 +192,6 @@ class Client {
 
 
 				//sendSocket.send(sendPacket);	
+				System.out.println("End of Java application");
 		}
 }
