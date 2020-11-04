@@ -36,10 +36,10 @@ class Client {
 				// TODO create a script that is scraping from ithaki website the request code and the ports.
 				byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
 				InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-				DatagramSocket sendSocket = new DatagramSocket(48012, clientAddress); 
-				String requestCode = "E3625";
+				DatagramSocket sendSocket = new DatagramSocket(48019, clientAddress); 
+				String requestCode = "E4248";
 				byte[] txbuffer = requestCode.getBytes();
-				int serverPort = 38012;
+				int serverPort = 38019;
 				byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
 				InetAddress hostAddress = InetAddress.getByAddress(hostIP);
 				DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
@@ -72,7 +72,7 @@ class Client {
 
 
 				System.out.println("\nTemperature measurements...");
-				requestCode = "E3625T00";
+				requestCode = "E4248T00";
 				txbuffer = requestCode.getBytes();
 				sendPacket.setData(txbuffer, 0, txbuffer.length);
 				for(int i = 0; i<=4 ; i++) {
@@ -98,9 +98,9 @@ class Client {
 				//	numImage++;
 				for(int numImage = 0; numImage<Integer.parseInt(args[1]); numImage++) {
 
-					System.out.println("\nImage application...");
-					requestCode = "M2834CAM=PTZUDP=1024DIR=" + args[0];
-					//requestCode = "M2834CCAM=PTZUDP=1024DIR=R";
+					System.out.println("\n--------------------Image application---------------------");
+					requestCode = "M4197CAM=PTZUDP=1024DIR=" + args[0];
+					//requestCode = "M4197CCAM=PTZUDP=1024DIR=R";
 					System.out.println("The request code is " + requestCode);
 					txbuffer = requestCode.getBytes();
 					sendPacket.setData(txbuffer, 0, txbuffer.length);
@@ -159,7 +159,8 @@ class Client {
 					System.out.println("\n\nTotal number of packages: " + (countPackets-1));
 					System.out.println("How many Kbytes is the image? " + dataImageBytes.length/(float)1000);
 					
-					File imageFile = new File("../media/image/sandbox/ithaki_image_PTZ_No" + numImage + ".jpg");
+					//File imageFile = new File("../media/image/sandbox/ithaki_image_PTZ_No" + numImage + ".jpg");
+					File imageFile = new File("../media/image/sandbox/ithaki_image_PTZ.jpg");
 					FileOutputStream fos = null;
 					try {
 							fos = new FileOutputStream(imageFile);
@@ -179,13 +180,13 @@ class Client {
 					System.out.println("Total amount of time to receive and write a frame in a .jpg file: " + (timeAfter - timeBefore)/(float)1000 + " seconds");
 					Desktop desktop = Desktop.getDesktop();
 					if (imageFile.exists()) {
-						desktop.open(imageFile);
+						//desktop.open(imageFile);
 					}
 				}
 				
 
 
-				System.out.println("\nAudio application");
+				System.out.println("\n--------------------Audio application--------------------");
 				requestCode = "A7163";
 				txbuffer = requestCode.getBytes();
 				sendPacket.setData(txbuffer, 0, txbuffer.length);
