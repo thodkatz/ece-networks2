@@ -37,10 +37,10 @@ class Client {
         // TODO create a script that is scraping from ithaki website the request code and the ports.
         byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-        DatagramSocket sendSocket = new DatagramSocket(48024, clientAddress); 
-        String requestCode = "E4483";
+        DatagramSocket sendSocket = new DatagramSocket(48027, clientAddress); 
+        String requestCode = "E5703";
         byte[] txbuffer = requestCode.getBytes();
-        int serverPort = 38024;
+        int serverPort = 38027;
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
         DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
@@ -200,15 +200,15 @@ outerloop:
 
 
         System.out.println("\n--------------------Audio application--------------------");
-        String numAudioPackets = "300";
-        requestCode = "A1785F" + numAudioPackets;
+        String numAudioPackets = "400";
+        requestCode = "A4642F" + numAudioPackets;
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         sendSocket.send(sendPacket);	
         byte[] rxbufferSound = new byte[128];
         receivePacket.setData(rxbufferSound, 0, rxbufferSound.length);
 
-        ByteArrayOutputStream bufferSound = new ByteArrayOutputStream(); // capture the audio in a buffer way
+        ByteArrayOutputStream bufferSound = new ByteArrayOutputStream(); // capture the audio in a buffer way (elastic buffer)
 
         int countPackets = 0;
         int packetsSize = 0;
@@ -234,15 +234,16 @@ outerloop:
                     System.out.print("Input: " + hexa + ", ");
                     int maskLow = 0x0F;
                     int maskHigh = 0xF0;
-                    int nibbleLow = (i & maskLow); // D[i] = x[i] - x[i-1]
-                    int nibbleHigh = (i & maskHigh)>>4; // D[i-1] = x[i-1] - x[i-2]
+                    int nibbleLow = (dataSound[i] & maskLow); // D[i] = x[i] - x[i-1]
+                    int nibbleHigh = (dataSound[i] & maskHigh)>>4; // D[i-1] = x[i-1] - x[i-2]
                     int sampleFirst = init + (nibbleHigh - 8);
                     int sampleSecond = sampleFirst + (nibbleLow - 8);
+                    System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8) +", " + (nibbleLow-8) + " and samples: " + sampleFirst + ", " + sampleSecond);
                     init = sampleSecond;
                     byte[] decodedSound = new byte[2];
                     decodedSound[0] = (byte)sampleFirst;
                     decodedSound[1] = (byte)sampleSecond;
-                    System.out.println("Output: " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]));
+                    System.out.println(". Output: " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]));
                     bufferSound.write(decodedSound);
                 }
 
@@ -270,10 +271,19 @@ outerloop:
         try {
             AudioFormat modulationPCM = new AudioFormat(8000, 8, 1, true, false);
             SourceDataLine outputAudio = AudioSystem.getSourceDataLine(modulationPCM);
-            outputAudio.open(modulationPCM, 3200);
-            //outputAudio.open(modulationPCM);
+            //outputAudio.open(modulationPCM, 3200);
+            outputAudio.open(modulationPCM);
             outputAudio.start();
 
+            System.out.println("Getting ready to hear some music?");
+            Thread.sleep(2000);
+            System.out.print("In 3");
+            Thread.sleep(1000);
+            System.out.print(", 2");
+            Thread.sleep(1000);
+            System.out.println(", 1...");
+            System.out.println("GOOOOOO");
+            Thread.sleep(1000);
             outputAudio.write(completeDataSound, 0, completeDataSound.length);
             outputAudio.stop();
             outputAudio.close();
