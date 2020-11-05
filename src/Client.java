@@ -37,10 +37,10 @@ class Client {
         // TODO create a script that is scraping from ithaki website the request code and the ports.
         byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-        DatagramSocket sendSocket = new DatagramSocket(48027, clientAddress); 
-        String requestCode = "E5703";
+        DatagramSocket sendSocket = new DatagramSocket(48009, clientAddress); 
+        String requestCode = "E8888";
         byte[] txbuffer = requestCode.getBytes();
-        int serverPort = 38027;
+        int serverPort = 38009;
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
         DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
@@ -79,7 +79,7 @@ class Client {
 
 
         System.out.println("\n--------------------Temperature measurements--------------------");
-        requestCode = "E4483T00";
+        requestCode = "E8888T00";
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         for(int i = 0; i<=4 ; i++) {
@@ -112,7 +112,7 @@ class Client {
         for(int numImage = 0; numImage<Integer.parseInt(args[1]); numImage++) {
 
             System.out.println("\n--------------------Image application---------------------");
-            requestCode = "M8125CAM=PTZUDP=1024DIR=" + args[0];
+            requestCode = "M3193CAM=PTZUDP=1024DIR=" + args[0];
             //requestCode = "M4197CCAM=PTZUDP=1024DIR=R";
             System.out.println("The request code is " + requestCode);
             txbuffer = requestCode.getBytes();
@@ -200,8 +200,8 @@ outerloop:
 
 
         System.out.println("\n--------------------Audio application--------------------");
-        String numAudioPackets = "400";
-        requestCode = "A4642F" + numAudioPackets;
+        String numAudioPackets = "999";
+        requestCode = "A9236F" + numAudioPackets;
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         sendSocket.send(sendPacket);	
@@ -246,10 +246,6 @@ outerloop:
                     System.out.println(". Output: " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]));
                     bufferSound.write(decodedSound);
                 }
-
-                //System.out.println("<----------Decoding the DCPM----------?");
-                //System.out.println("<----------Receiver DCPM----------?");
-                //bufferSound.write(dataSound);
                 System.out.println();
             }
             catch (Exception x) {
@@ -268,8 +264,9 @@ outerloop:
         System.out.println("\n\nTotal number of packages: " + (countPackets));
         System.out.println("How many Kbytes is the sound? " + completeDataSound.length/(float)1000 + "\nHow many Kbytes is the data that was actually sent? " + packetsSize/(float)1000);
 
+        // decode and play the sound
+        AudioFormat modulationPCM = new AudioFormat(8000, 8, 1, true, false);
         try {
-            AudioFormat modulationPCM = new AudioFormat(8000, 8, 1, true, false);
             SourceDataLine outputAudio = AudioSystem.getSourceDataLine(modulationPCM);
             //outputAudio.open(modulationPCM, 3200);
             outputAudio.open(modulationPCM);
@@ -289,12 +286,23 @@ outerloop:
             outputAudio.close();
             System.out.println("\nSound application success!");
 
+
         }
         catch (Exception x) {
             System.out.println(x + ". Sound playing failed");
         }
 
+        // save music to file
+        try{
+            ByteArrayInputStream bufferSoundInput = new ByteArrayInputStream(completeDataSound);
+            AudioInputStream streamSoundInput = new AudioInputStream(bufferSoundInput, modulationPCM, completeDataSound.length / modulationPCM.getFrameSize());
+            AudioSystem.write(streamSoundInput, AudioFileFormat.Type.WAVE, new File("../media/music/sandbox/track.wav"));
+        }
+        catch (Exception x) {
+            System.out.println(x);
+        }
+        
 
-        System.out.println("\n--------------------END OF JAVA APPLICATION--------------------");
+        System.out.println("\nx--------------------END OF JAVA APPLICATION--------------------x");
         }
     }
