@@ -37,10 +37,10 @@ class Client {
         // TODO create a script that is scraping from ithaki website the request code and the ports.
         byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-        DatagramSocket sendSocket = new DatagramSocket(48009, clientAddress); 
-        String requestCode = "E8888";
+        DatagramSocket sendSocket = new DatagramSocket(48008, clientAddress); 
+        String requestCode = "E6478";
         byte[] txbuffer = requestCode.getBytes();
-        int serverPort = 38009;
+        int serverPort = 38008;
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
         DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
@@ -112,7 +112,7 @@ class Client {
         for(int numImage = 0; numImage<Integer.parseInt(args[1]); numImage++) {
 
             System.out.println("\n--------------------Image application---------------------");
-            requestCode = "M3193CAM=PTZUDP=1024DIR=" + args[0];
+            requestCode = "M8163CAM=PTZUDP=1024DIR=" + args[0];
             //requestCode = "M4197CCAM=PTZUDP=1024DIR=R";
             System.out.println("The request code is " + requestCode);
             txbuffer = requestCode.getBytes();
@@ -200,18 +200,30 @@ outerloop:
 
 
         System.out.println("\n--------------------Audio application--------------------");
-        String numAudioPackets = "999";
-        requestCode = "A9236F" + numAudioPackets;
+        String numAudioPackets = "400";
+        //String typeModulation = "AQ"; // TODO: command line arguement
+        String typeModulation = ""; 
+        requestCode = "A5408" + typeModulation + "F" + numAudioPackets;
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         sendSocket.send(sendPacket);	
-        byte[] rxbufferSound = new byte[128];
+        int bufferLength = 0;
+        if (typeModulation.equals("")) {
+            bufferLength = 128;
+        }
+        else if (typeModulation.equals("AQ")) {
+            bufferLength = 132;
+        }
+        else {
+            System.out.println("Invalid request code regarding audio application");
+        }
+        byte[] rxbufferSound = new byte[bufferLength];
         receivePacket.setData(rxbufferSound, 0, rxbufferSound.length);
 
         ByteArrayOutputStream bufferSound = new ByteArrayOutputStream(); // capture the audio in a buffer way (elastic buffer)
 
-        int countPackets = 0;
-        int packetsSize = 0;
+        int countPackets = 0; // total amount of packets received
+        int packetsSize = 0; // total amount of bytes received
         long timeBefore = System.currentTimeMillis();
         long timeBeforePerPacket = System.currentTimeMillis();
         for(int k = 0; k<Integer.parseInt(numAudioPackets); k++) {
@@ -228,28 +240,71 @@ outerloop:
                 System.out.println("Packet No" + countPackets + ". Length of data: " + dataSound.length);
 
                 int init = 0;
-                for (int i = 0; i<dataSound.length; i++) {
-                //for (byte i : dataSound) {
-                    String hexa = String.format("%02X", dataSound[i]); // print hexadecimal the content of the byte array
-                    System.out.print("Input: " + hexa + ", ");
-                    int maskLow = 0x0F;
-                    int maskHigh = 0xF0;
-                    int nibbleLow = (dataSound[i] & maskLow); // D[i] = x[i] - x[i-1]
-                    int nibbleHigh = (dataSound[i] & maskHigh)>>4; // D[i-1] = x[i-1] - x[i-2]
-                    int sampleFirst = init + (nibbleHigh - 8);
-                    int sampleSecond = sampleFirst + (nibbleLow - 8);
-                    System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8) +", " + (nibbleLow-8) + " and samples: " + sampleFirst + ", " + sampleSecond);
-                    init = sampleSecond;
-                    byte[] decodedSound = new byte[2];
-                    decodedSound[0] = (byte)sampleFirst;
-                    decodedSound[1] = (byte)sampleSecond;
-                    System.out.println(". Output: " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]));
-                    bufferSound.write(decodedSound);
+                int coeffDPCM = 2; // Trials: for 100 is pure noise, 4 good, 10 bad. I think below 4 you are good 
+                if (typeModulation.equals("")) {
+                    // DPCM
+                    for (int i = 0; i<dataSound.length; i++) {
+
+                        String hexa = String.format("%02X", dataSound[i]); // print hexadecimal the content of the byte array
+                        System.out.print("Input: " + hexa + ", ");
+                        // get nibbles
+                        int maskLow = 0x0F;
+                        int maskHigh = 0xF0;
+                        int nibbleLow = (dataSound[i] & maskLow); // D[i] = x[i] - x[i-1]
+                        int nibbleHigh = (dataSound[i] & maskHigh)>>4; // D[i-1] = x[i-1] - x[i-2]
+                        // get samples
+                        int sampleFirst = init + (nibbleHigh - 8)*coeffDPCM;
+                        int sampleSecond = sampleFirst + (nibbleLow - 8)*coeffDPCM;
+                        System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8) +", " + (nibbleLow-8) + " and samples: " + sampleFirst + ", " + sampleSecond);
+                        init = sampleSecond;
+                        byte[] decodedSound = new byte[2];
+                        decodedSound[0] = (byte)sampleFirst;
+                        decodedSound[1] = (byte)sampleSecond;
+                        System.out.println(". Output: " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]));
+                        bufferSound.write(decodedSound);
+
+                    }
+                }
+                else if (typeModulation.equals("AQ")) {
+                    // AQ-DPCM
+
+                    // get the header first
+                    int mean = (dataSound[1]<<8) | (dataSound[0]);
+                    System.out.print("The MSB of mean is " + String.format("%02X", dataSound[1]) + " and the LSB of the mean is "+ String.format("%02X", dataSound[0]) + "The mean is " + mean);
+                    int step = (dataSound[3]<<8) | (dataSound[2]);
+                    System.out.print("The MSB of step is " + String.format("%02X", dataSound[1]) + " and the LSB of the step is " + String.format("%02X", dataSound[0]) + "The step is " + step);
+
+                    for (int i = 3; i<dataSound.length; i++) {
+                        // the sample may be bigger than byte. So you will need 16 bit encoding and store each int to 2 bytes.
+                        
+                        // get nibbles                                                            
+                        int maskLow = 0x0F;
+                        int maskHigh = 0xF0;
+                        int nibbleLow = (dataSound[i] & maskLow); // D[i] = x[i] - x[i-1]
+                        int nibbleHigh = (dataSound[i] & maskHigh)>>4; // D[i-1] = x[i-1] - x[i-2]
+
+                        // get samples
+                        int sampleFirst = step*(nibbleHigh - 8) + mean;
+                        int sampleSecond = step*(nibbleLow - 8) + mean;
+                        System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8) +", " + (nibbleLow-8) + " and samples: " + sampleFirst + ", " + sampleSecond);
+                        init = sampleSecond;
+
+                        byte[] decodedSound = new byte[4];
+                        decodedSound[0] = (byte)(sampleFirst>>8); // MSB of sample 15-8
+                        decodedSound[1] = (byte)sampleFirst; // LSB of sample 7-0
+                        decodedSound[2] = (byte)(sampleSecond>>8);
+                        decodedSound[3] = (byte)sampleSecond;
+                        System.out.println(". Output: First sample " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]) + " second sample: " + String.format("%02X", decodedSound[2]) + String.format("%02X", decodedSound[3]));
+                        bufferSound.write(decodedSound);
+                    }
+                }
+                else {
+                    System.out.println("This is not a valid request code");
                 }
                 System.out.println();
             }
             catch (Exception x) {
-                System.out.println(x);
+                System.out.println(x + ". Receiving, writing the audio data failed");
                 break;
             }
         }
@@ -264,9 +319,15 @@ outerloop:
         System.out.println("\n\nTotal number of packages: " + (countPackets));
         System.out.println("How many Kbytes is the sound? " + completeDataSound.length/(float)1000 + "\nHow many Kbytes is the data that was actually sent? " + packetsSize/(float)1000);
 
-        // decode and play the sound
-        AudioFormat modulationPCM = new AudioFormat(8000, 8, 1, true, false);
-        try {
+        boolean isBigEndian = false; // only in 16 bit samples does matter. In AQ-DPCM we use 16 bit encoding
+        int encodingBits = 8;
+		if (typeModulation.equals("AQ")) {                                             
+            isBigEndian = true;
+            encodingBits = 16;
+		}
+		AudioFormat modulationPCM = new AudioFormat(8000, encodingBits, 1, true, isBigEndian);
+		// play sound
+		try {
             SourceDataLine outputAudio = AudioSystem.getSourceDataLine(modulationPCM);
             //outputAudio.open(modulationPCM, 3200);
             outputAudio.open(modulationPCM);
@@ -279,14 +340,13 @@ outerloop:
             System.out.print(", 2");
             Thread.sleep(1000);
             System.out.println(", 1...");
+            Thread.sleep(500);
             System.out.println("GOOOOOO");
-            Thread.sleep(1000);
+            Thread.sleep(500);
             outputAudio.write(completeDataSound, 0, completeDataSound.length);
             outputAudio.stop();
             outputAudio.close();
             System.out.println("\nSound application success!");
-
-
         }
         catch (Exception x) {
             System.out.println(x + ". Sound playing failed");
@@ -297,9 +357,10 @@ outerloop:
             ByteArrayInputStream bufferSoundInput = new ByteArrayInputStream(completeDataSound);
             AudioInputStream streamSoundInput = new AudioInputStream(bufferSoundInput, modulationPCM, completeDataSound.length / modulationPCM.getFrameSize());
             AudioSystem.write(streamSoundInput, AudioFileFormat.Type.WAVE, new File("../media/music/sandbox/track.wav"));
+            System.out.println("Sound file creation success");
         }
         catch (Exception x) {
-            System.out.println(x);
+            System.out.println(x + ". Sound file creation failed");
         }
         
 
