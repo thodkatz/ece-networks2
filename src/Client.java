@@ -37,10 +37,10 @@ class Client {
         // TODO create a script that is scraping from ithaki website the request code and the ports.
         byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-        DatagramSocket sendSocket = new DatagramSocket(48005, clientAddress); 
-        String requestCode = "E4213";
+        DatagramSocket sendSocket = new DatagramSocket(48010, clientAddress); 
+        String requestCode = "E4528";
         byte[] txbuffer = requestCode.getBytes();
-        int serverPort = 38005;
+        int serverPort = 38010;
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
         DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
@@ -79,7 +79,7 @@ class Client {
 
 
         System.out.println("\n--------------------Temperature measurements--------------------");
-        requestCode = "E4213T00";
+        requestCode = "E4528T00";
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         for(int i = 0; i<=4 ; i++) {
@@ -113,7 +113,8 @@ class Client {
 
             System.out.println("\n--------------------Image application---------------------");
             //requestCode = "M9621CAM=PTZUDP=1024DIR=" + args[0];
-            requestCode = "M9591UDP=1024";
+            //requestCode = "M9591UDP=1024";
+            requestCode = "M8796CAM=PTZUDP=1024";
             System.out.println("The request code is " + requestCode);
             txbuffer = requestCode.getBytes();
             sendPacket.setData(txbuffer, 0, txbuffer.length);
@@ -203,7 +204,7 @@ outerloop:
         String numAudioPackets = "999";
         String typeModulation = "AQ"; // TODO: command line arguement
         //String typeModulation = ""; 
-        requestCode = "A3707" + typeModulation + "F" + numAudioPackets;
+        requestCode = "A5089" + typeModulation + "F" + numAudioPackets;
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         sendSocket.send(sendPacket);	
@@ -257,6 +258,17 @@ outerloop:
                         int sampleSecond = sampleFirst + (nibbleLow - 8)*coeffDPCM;
                         System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8) +", " + (nibbleLow-8) + " and samples: " + sampleFirst + ", " + sampleSecond);
                         init = sampleSecond;
+
+                        // check range
+                        int max8 = 2^7 - 1;
+                        int min8 = -2^7;
+                        int[] samples = {sampleFirst, sampleSecond};
+                        for (int j : samples) {
+                            if (j>max8) j = max8;
+                            else if (j<min8) j = min8;
+                        }               
+                        
+                        // write to buffer
                         byte[] decodedSound = new byte[2];
                         decodedSound[0] = (byte)sampleFirst;
                         decodedSound[1] = (byte)sampleSecond;
@@ -296,14 +308,24 @@ outerloop:
                         // get samples
                         int sampleFirst = init + step*(nibbleHigh - 8);
                         int sampleSecond = sampleFirst + step*(nibbleLow - 8);
-                        System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8) +", " + (nibbleLow-8) + " and samples: " + sampleFirst + ", " + sampleSecond);
+                        System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8)*step +", " + (nibbleLow-8)*step + " and samples: " + sampleFirst + ", " + sampleSecond);
                         init = sampleSecond;
 
+                        // check range
+                        int max16 = 2^15 - 1;
+                        int min16 = -2^15;
+                        int[] samples = {sampleFirst, sampleSecond};
+                        for (int j : samples) {
+                            if (j>max16) j = max16;
+                            else if (j<min16) j = min16;
+                        }
+
+                        // write to buffer
                         byte[] decodedSound = new byte[4];
-                        decodedSound[0] = (byte)(sampleFirst>>8); // MSB of sample 15-8
-                        decodedSound[1] = (byte)sampleFirst; // LSB of sample 7-0
-                        decodedSound[2] = (byte)(sampleSecond>>8);
-                        decodedSound[3] = (byte)sampleSecond;
+                        decodedSound[0] = (byte)(samples[0]>>8); // MSB of sample 15-8
+                        decodedSound[1] = (byte)samples[0]; // LSB of sample 7-0
+                        decodedSound[2] = (byte)(samples[1]>>8);
+                        decodedSound[3] = (byte)samples[1];
                         System.out.println(". Output: First sample " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]) + " second sample: " + String.format("%02X", decodedSound[2]) + String.format("%02X", decodedSound[3]));
                         bufferSound.write(decodedSound);
                     }
