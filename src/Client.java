@@ -37,10 +37,10 @@ class Client {
         // TODO create a script that is scraping from ithaki website the request code and the ports.
         byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-        DatagramSocket sendSocket = new DatagramSocket(48008, clientAddress); 
-        String requestCode = "E6478";
+        DatagramSocket sendSocket = new DatagramSocket(48005, clientAddress); 
+        String requestCode = "E4213";
         byte[] txbuffer = requestCode.getBytes();
-        int serverPort = 38008;
+        int serverPort = 38005;
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
         DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
@@ -79,7 +79,7 @@ class Client {
 
 
         System.out.println("\n--------------------Temperature measurements--------------------");
-        requestCode = "E8888T00";
+        requestCode = "E4213T00";
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         for(int i = 0; i<=4 ; i++) {
@@ -112,18 +112,18 @@ class Client {
         for(int numImage = 0; numImage<Integer.parseInt(args[1]); numImage++) {
 
             System.out.println("\n--------------------Image application---------------------");
-            requestCode = "M8163CAM=PTZUDP=1024DIR=" + args[0];
-            //requestCode = "M4197CCAM=PTZUDP=1024DIR=R";
+            //requestCode = "M9621CAM=PTZUDP=1024DIR=" + args[0];
+            requestCode = "M9591UDP=1024";
             System.out.println("The request code is " + requestCode);
             txbuffer = requestCode.getBytes();
             sendPacket.setData(txbuffer, 0, txbuffer.length);
             sendSocket.send(sendPacket);	
             System.out.println("I am sleeping... Camera needs time to readjust");
-            Thread.sleep(5000); // sleep in order for the camera to readjust	
+            //Thread.sleep(5000); // sleep in order for the camera to readjust	
 
-            if (numImage != (Integer.parseInt(args[1])-1)){
-                continue; // readjust the camera as many time is requested via the command line arguement. Print only the result, the last request
-            }
+            //if (numImage != (Integer.parseInt(args[1])-1)){
+            //    continue; // readjust the camera as many time is requested via the command line arguement. Print only the result, the last request
+            //}
 
             ByteArrayOutputStream bufferImage = new ByteArrayOutputStream();
             int countPackets = 0;
@@ -200,10 +200,10 @@ outerloop:
 
 
         System.out.println("\n--------------------Audio application--------------------");
-        String numAudioPackets = "400";
-        //String typeModulation = "AQ"; // TODO: command line arguement
-        String typeModulation = ""; 
-        requestCode = "A5408" + typeModulation + "F" + numAudioPackets;
+        String numAudioPackets = "999";
+        String typeModulation = "AQ"; // TODO: command line arguement
+        //String typeModulation = ""; 
+        requestCode = "A3707" + typeModulation + "F" + numAudioPackets;
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         sendSocket.send(sendPacket);	
@@ -221,7 +221,6 @@ outerloop:
         receivePacket.setData(rxbufferSound, 0, rxbufferSound.length);
 
         ByteArrayOutputStream bufferSound = new ByteArrayOutputStream(); // capture the audio in a buffer way (elastic buffer)
-
         int countPackets = 0; // total amount of packets received
         int packetsSize = 0; // total amount of bytes received
         long timeBefore = System.currentTimeMillis();
@@ -246,12 +245,13 @@ outerloop:
                     for (int i = 0; i<dataSound.length; i++) {
 
                         String hexa = String.format("%02X", dataSound[i]); // print hexadecimal the content of the byte array
-                        System.out.print("Input: " + hexa + ", ");
+                        System.out.print("Input: decimal: " + dataSound[i] + ", unsigned: " + Byte.toUnsignedInt(dataSound[i])  + " and the hexa: " + hexa + ", ");
                         // get nibbles
                         int maskLow = 0x0F;
                         int maskHigh = 0xF0;
-                        int nibbleLow = (dataSound[i] & maskLow); // D[i] = x[i] - x[i-1]
+                        int nibbleLow = (dataSound[i]) & maskLow; // D[i] = x[i] - x[i-1]
                         int nibbleHigh = (dataSound[i] & maskHigh)>>4; // D[i-1] = x[i-1] - x[i-2]
+                       
                         // get samples
                         int sampleFirst = init + (nibbleHigh - 8)*coeffDPCM;
                         int sampleSecond = sampleFirst + (nibbleLow - 8)*coeffDPCM;
@@ -269,14 +269,24 @@ outerloop:
                     // AQ-DPCM
 
                     // get the header first
-                    int mean = (dataSound[1]<<8) | (dataSound[0]);
-                    System.out.print("The MSB of mean is " + String.format("%02X", dataSound[1]) + " and the LSB of the mean is "+ String.format("%02X", dataSound[0]) + "The mean is " + mean);
-                    int step = (dataSound[3]<<8) | (dataSound[2]);
-                    System.out.print("The MSB of step is " + String.format("%02X", dataSound[1]) + " and the LSB of the step is " + String.format("%02X", dataSound[0]) + "The step is " + step);
+                    int mean = (Byte.toUnsignedInt(dataSound[1])<<8 | Byte.toUnsignedInt(dataSound[0])); // be sure to not preserve the byte sign
+                    int meanSigned = (dataSound[1]<<8 | dataSound[0]); // this is wrong
+                    System.out.println("dataSound[1]: " + String.format("%02X", dataSound[1]) + ", dataSound[1]<<8: " + String.format("%02X", (Byte.toUnsignedInt(dataSound[1]))<<8));
+                    System.out.println("The MSB of mean is " + String.format("%02X", dataSound[1]) + " and the LSB of the mean is "+ String.format("%02X", dataSound[0]) + ". The mean is " + mean + " and signed " + meanSigned + " and in hex: " + String.format("%02X", mean));
+                    int step = (Byte.toUnsignedInt(dataSound[3])<<8 | Byte.toUnsignedInt(dataSound[2]));
+                    System.out.println("The MSB of step is " + String.format("%02X", dataSound[3]) + " and the LSB of the step is " + String.format("%02X", dataSound[2]) + ". The step is " + step + " and in hex: " + String.format("%02X", step));
+                    // step should be unsigned? we are safe since it is int and the value is 2 bytes maximum. Int preserves sign
+                    
+                    //int mean = 256*dataSound[1] + dataSound[0];
+                    //int step = 256*dataSound[3] + dataSound[2];
+                    System.out.print((short)(256*Byte.toUnsignedInt(dataSound[1]) + Byte.toUnsignedInt(dataSound[0])));
+                    System.out.println(", "+ (short)((256*Byte.toUnsignedInt(dataSound[3]) + Byte.toUnsignedInt(dataSound[2]))));
 
+                    init = mean; // in DPCM we don't know the init value, we assume zero. But here we have data in the header.
                     for (int i = 3; i<dataSound.length; i++) {
                         // the sample may be bigger than byte. So you will need 16 bit encoding and store each int to 2 bytes.
-                        
+                        String hexa = String.format("%02X", dataSound[i]); // print hexadecimal the content of the byte array
+                        System.out.print("Input: " + hexa + ", ");                       
                         // get nibbles                                                            
                         int maskLow = 0x0F;
                         int maskHigh = 0xF0;
@@ -284,8 +294,8 @@ outerloop:
                         int nibbleHigh = (dataSound[i] & maskHigh)>>4; // D[i-1] = x[i-1] - x[i-2]
 
                         // get samples
-                        int sampleFirst = step*(nibbleHigh - 8) + mean;
-                        int sampleSecond = step*(nibbleLow - 8) + mean;
+                        int sampleFirst = init + step*(nibbleHigh - 8);
+                        int sampleSecond = sampleFirst + step*(nibbleLow - 8);
                         System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8) +", " + (nibbleLow-8) + " and samples: " + sampleFirst + ", " + sampleSecond);
                         init = sampleSecond;
 
