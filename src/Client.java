@@ -44,13 +44,13 @@ class Client {
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
         DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
-        sendSocket.setSoTimeout(3000);
+        sendSocket.setSoTimeout(2500);
         byte[] rxbuffer = new byte[1024];
         DatagramPacket receivePacket= new DatagramPacket(rxbuffer, rxbuffer.length);
 
         System.out.println("\n--------------------Echo application--------------------");
-        byte[] data = new byte[1024]; 
         for(int i = 0; i<=4 ; i++) {
+            byte[] data = new byte[1024]; 
             try {
                 // ACTION
                 sendSocket.send(sendPacket);
@@ -83,6 +83,7 @@ class Client {
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         for(int i = 0; i<=4 ; i++) {
+            byte[] data = new byte[1024]; 
             try {
                 // ACTION
                 sendSocket.send(sendPacket);
@@ -208,6 +209,7 @@ outerloop:
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         sendSocket.send(sendPacket);	
+
         int bufferLength = 0;
         if (typeModulation.equals("")) {
             bufferLength = 128;
@@ -218,6 +220,7 @@ outerloop:
         else {
             System.out.println("Invalid request code regarding audio application");
         }
+
         byte[] rxbufferSound = new byte[bufferLength];
         receivePacket.setData(rxbufferSound, 0, rxbufferSound.length);
 
@@ -394,7 +397,32 @@ outerloop:
         catch (Exception x) {
             System.out.println(x + ". Sound file creation failed");
         }
+
+        System.out.println("\n--------------------Ithakicopter-UDP--------------------");
+
+        requestCode = "Q3492";
+        DatagramSocket socketCopter = new DatagramSocket(48038);
+        socketCopter.setSoTimeout(2500);
+        serverPort = 38038;
+        DatagramPacket sendPacketCopter = new DatagramPacket(requestCode.getBytes(), requestCode.getBytes().length, InetAddress.getByAddress(hostIP), serverPort);
+        socketCopter.send(sendPacketCopter);
+
+        byte[] rxbufferCopter = new byte[64];
+        receivePacket.setData(rxbufferCopter, 0, rxbufferCopter.length);
+
+        for (int i=0; i<4;i++) {
+            try {
+                socketCopter.receive(receivePacket);
+                String message = new String(receivePacket.getData(), StandardCharsets.US_ASCII); // convert binary to ASCI
+                System.out.println("Ithaki responded with: " + message);
+
+            }
+            catch (Exception x) {
+                System.out.println(x + ". Ithakicopter application failed");
+            }
         
+        }
+
 
         System.out.println("\nx--------------------END OF JAVA APPLICATION--------------------x");
         }
