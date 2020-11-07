@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.lang.System;
 import java.awt.Desktop;
 import javax.sound.sampled.*;
+import java.lang.Math.*;
 
 class Client {
     public static void main (String[] args) throws Exception {
@@ -37,10 +38,10 @@ class Client {
         // TODO create a script that is scraping from ithaki website the request code and the ports.
         byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-        DatagramSocket sendSocket = new DatagramSocket(48010, clientAddress); 
-        String requestCode = "E4528";
+        DatagramSocket sendSocket = new DatagramSocket(48018, clientAddress); 
+        String requestCode = "E9869";
         byte[] txbuffer = requestCode.getBytes();
-        int serverPort = 38010;
+        int serverPort = 38018;
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
         DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
@@ -79,7 +80,7 @@ class Client {
 
 
         System.out.println("\n--------------------Temperature measurements--------------------");
-        requestCode = "E4528T00";
+        requestCode = "E9869T00";
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         for(int i = 0; i<=4 ; i++) {
@@ -114,8 +115,8 @@ class Client {
 
             System.out.println("\n--------------------Image application---------------------");
             //requestCode = "M9621CAM=PTZUDP=1024DIR=" + args[0];
-            //requestCode = "M9591UDP=1024";
-            requestCode = "M8796CAM=PTZUDP=1024";
+            requestCode = "M7671UDP=1024";
+            //requestCode = "M2973CAM=PTZUDP=1024";
             System.out.println("The request code is " + requestCode);
             txbuffer = requestCode.getBytes();
             sendPacket.setData(txbuffer, 0, txbuffer.length);
@@ -205,7 +206,7 @@ outerloop:
         String numAudioPackets = "999";
         String typeModulation = "AQ"; // TODO: command line arguement
         //String typeModulation = ""; 
-        requestCode = "A5089" + typeModulation + "F" + numAudioPackets;
+        requestCode = "A4788" + typeModulation + "F" + numAudioPackets;
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         sendSocket.send(sendPacket);	
@@ -253,7 +254,7 @@ outerloop:
                         // get nibbles
                         int maskLow = 0x0F;
                         int maskHigh = 0xF0;
-                        int nibbleLow = (dataSound[i]) & maskLow; // D[i] = x[i] - x[i-1]
+                        int nibbleLow = dataSound[i] & maskLow; // D[i] = x[i] - x[i-1]
                         int nibbleHigh = (dataSound[i] & maskHigh)>>4; // D[i-1] = x[i-1] - x[i-2]
                        
                         // get samples
@@ -263,12 +264,12 @@ outerloop:
                         init = sampleSecond;
 
                         // check range
-                        int max8 = 2^7 - 1;
-                        int min8 = -2^7;
+                        int max8 = (int)(Math.pow(2,7)) - 1;
+                        int min8 = -(int)(Math.pow(2,7));
                         int[] samples = {sampleFirst, sampleSecond};
-                        for (int j : samples) {
-                            if (j>max8) j = max8;
-                            else if (j<min8) j = min8;
+                        for (int j=0; j< samples.length; j++) {
+                            if (samples[j]>max8) samples[j] = max8;
+                            else if (samples[j]<min8) samples[j] = min8;
                         }               
                         
                         // write to buffer
@@ -285,7 +286,7 @@ outerloop:
 
                     // get the header first
                     int mean = (Byte.toUnsignedInt(dataSound[1])<<8 | Byte.toUnsignedInt(dataSound[0])); // be sure to not preserve the byte sign
-                    int meanSigned = (dataSound[1]<<8 | dataSound[0]); // this is wrong
+                    int meanSigned = (dataSound[1]<<8 | dataSound[0]); // this is wrong. Not sure though?
                     System.out.println("dataSound[1]: " + String.format("%02X", dataSound[1]) + ", dataSound[1]<<8: " + String.format("%02X", (Byte.toUnsignedInt(dataSound[1]))<<8));
                     System.out.println("The MSB of mean is " + String.format("%02X", dataSound[1]) + " and the LSB of the mean is "+ String.format("%02X", dataSound[0]) + ". The mean is " + mean + " and signed " + meanSigned + " and in hex: " + String.format("%02X", mean));
                     int step = (Byte.toUnsignedInt(dataSound[3])<<8 | Byte.toUnsignedInt(dataSound[2]));
@@ -294,10 +295,10 @@ outerloop:
                     
                     //int mean = 256*dataSound[1] + dataSound[0];
                     //int step = 256*dataSound[3] + dataSound[2];
-                    System.out.print((short)(256*Byte.toUnsignedInt(dataSound[1]) + Byte.toUnsignedInt(dataSound[0])));
-                    System.out.println(", "+ (short)((256*Byte.toUnsignedInt(dataSound[3]) + Byte.toUnsignedInt(dataSound[2]))));
+                    //System.out.print((short)(256*Byte.toUnsignedInt(dataSound[1]) + Byte.toUnsignedInt(dataSound[0])));
+                    //System.out.println(", "+ (short)((256*Byte.toUnsignedInt(dataSound[3]) + Byte.toUnsignedInt(dataSound[2]))));
 
-                    init = mean; // in DPCM we don't know the init value, we assume zero. But here we have data in the header.
+                    init = meanSigned; // in DPCM we don't know the init value, we assume zero. But here we have data in the header.
                     for (int i = 3; i<dataSound.length; i++) {
                         // the sample may be bigger than byte. So you will need 16 bit encoding and store each int to 2 bytes.
                         String hexa = String.format("%02X", dataSound[i]); // print hexadecimal the content of the byte array
@@ -305,23 +306,24 @@ outerloop:
                         // get nibbles                                                            
                         int maskLow = 0x0F;
                         int maskHigh = 0xF0;
-                        int nibbleLow = (dataSound[i] & maskLow); // D[i] = x[i] - x[i-1]
-                        int nibbleHigh = (dataSound[i] & maskHigh)>>4; // D[i-1] = x[i-1] - x[i-2]
+                        int nibbleLow = (dataSound[i] & maskLow); // D[i] = x[i] - x[i-1], should be unsigned
+                        int nibbleHigh = (dataSound[i] & maskHigh)>>4; // D[i-1] = x[i-1] - x[i-2], should be unsigned
 
-                        // get samples
+                        // get samples (implement recursive formula)
                         int sampleFirst = init + step*(nibbleHigh - 8);
                         int sampleSecond = sampleFirst + step*(nibbleLow - 8);
                         System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8)*step +", " + (nibbleLow-8)*step + " and samples: " + sampleFirst + ", " + sampleSecond);
                         init = sampleSecond;
 
                         // check range
-                        int max16 = 2^15 - 1;
-                        int min16 = -2^15;
+                        int max16 = (int)(Math.pow(2,15)) - 1;
+                        int min16 = -(int)(Math.pow(2,15));
                         int[] samples = {sampleFirst, sampleSecond};
-                        for (int j : samples) {
-                            if (j>max16) j = max16;
-                            else if (j<min16) j = min16;
+                        for (int j=0; j<samples.length; j++) {
+                            if (samples[j]>max16) samples[j] = max16;
+                            else if (samples[j]<min16)  samples[j] = min16; 
                         }
+                        System.out.print(". The actual samples due to 16-bit restriction are: " + samples[0] + " and " + samples[1]);
 
                         // write to buffer
                         byte[] decodedSound = new byte[4];
@@ -400,12 +402,8 @@ outerloop:
 
         System.out.println("\n--------------------Ithakicopter-UDP--------------------");
 
-        requestCode = "Q3492";
         DatagramSocket socketCopter = new DatagramSocket(48038);
         socketCopter.setSoTimeout(2500);
-        serverPort = 38038;
-        DatagramPacket sendPacketCopter = new DatagramPacket(requestCode.getBytes(), requestCode.getBytes().length, InetAddress.getByAddress(hostIP), serverPort);
-        socketCopter.send(sendPacketCopter);
 
         byte[] rxbufferCopter = new byte[64];
         receivePacket.setData(rxbufferCopter, 0, rxbufferCopter.length);
@@ -423,6 +421,14 @@ outerloop:
         
         }
 
+
+        System.out.println("--------------------Ithakicopter-TCP------------------------------");
+
+
+        // close sockets
+        System.out.println("\nClosing sockets....");
+        sendSocket.close();
+        socketCopter.close();
 
         System.out.println("\nx--------------------END OF JAVA APPLICATION--------------------x");
         }
