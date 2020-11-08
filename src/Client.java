@@ -38,10 +38,10 @@ class Client {
         // TODO create a script that is scraping from ithaki website the request code and the ports.
         byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-        DatagramSocket sendSocket = new DatagramSocket(48018, clientAddress); 
-        String requestCode = "E9869";
+        DatagramSocket sendSocket = new DatagramSocket(48044, clientAddress); 
+        String requestCode = "E1323";
         byte[] txbuffer = requestCode.getBytes();
-        int serverPort = 38018;
+        int serverPort = 38044;
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
         DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
@@ -80,7 +80,7 @@ class Client {
 
 
         System.out.println("\n--------------------Temperature measurements--------------------");
-        requestCode = "E9869T00";
+        requestCode = "E1323T00";
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         for(int i = 0; i<=4 ; i++) {
@@ -115,7 +115,7 @@ class Client {
 
             System.out.println("\n--------------------Image application---------------------");
             //requestCode = "M9621CAM=PTZUDP=1024DIR=" + args[0];
-            requestCode = "M7671UDP=1024";
+            requestCode = "M2893UDP=1024";
             //requestCode = "M2973CAM=PTZUDP=1024";
             System.out.println("The request code is " + requestCode);
             txbuffer = requestCode.getBytes();
@@ -203,13 +203,13 @@ outerloop:
 
 
         System.out.println("\n--------------------Audio application--------------------");
-        String numAudioPackets = "999";
+        String numAudioPackets = "100";
         String typeModulation = "AQ"; // TODO: command line arguement
         //String typeModulation = ""; 
-        requestCode = "A4788" + typeModulation + "F" + numAudioPackets;
+        requestCode = "A6381" + typeModulation + "F" + numAudioPackets;
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
-        sendSocket.send(sendPacket);	
+        sendSocket.send(sendPacket);
 
         int bufferLength = 0;
         if (typeModulation.equals("")) {
@@ -288,7 +288,7 @@ outerloop:
                     int mean = (Byte.toUnsignedInt(dataSound[1])<<8 | Byte.toUnsignedInt(dataSound[0])); // be sure to not preserve the byte sign
                     int meanSigned = (dataSound[1]<<8 | dataSound[0]); // this is wrong. Not sure though?
                     System.out.println("dataSound[1]: " + String.format("%02X", dataSound[1]) + ", dataSound[1]<<8: " + String.format("%02X", (Byte.toUnsignedInt(dataSound[1]))<<8));
-                    System.out.println("The MSB of mean is " + String.format("%02X", dataSound[1]) + " and the LSB of the mean is "+ String.format("%02X", dataSound[0]) + ". The mean is " + mean + " and signed " + meanSigned + " and in hex: " + String.format("%02X", mean));
+                    System.out.println("The MSB of mean is " + String.format("%02X", dataSound[1]) + " and the LSB of the mean is "+ String.format("%02X", dataSound[0]) + ". The mean is " + mean + " and signed " + meanSigned + " and in hex unsigned: " + String.format("%02X", mean) + " and signed " + String.format("%02X", meanSigned));
                     int step = (Byte.toUnsignedInt(dataSound[3])<<8 | Byte.toUnsignedInt(dataSound[2]));
                     System.out.println("The MSB of step is " + String.format("%02X", dataSound[3]) + " and the LSB of the step is " + String.format("%02X", dataSound[2]) + ". The step is " + step + " and in hex: " + String.format("%02X", step));
                     // step should be unsigned? we are safe since it is int and the value is 2 bytes maximum. Int preserves sign
@@ -323,7 +323,7 @@ outerloop:
                             if (samples[j]>max16) samples[j] = max16;
                             else if (samples[j]<min16)  samples[j] = min16; 
                         }
-                        System.out.print(". The actual samples due to 16-bit restriction are: " + samples[0] + " and " + samples[1]);
+                        System.out.print(". The actual samples due to 16-bit restriction are: " + samples[0] + " and " + samples[1] + " and in hex format: " + String.format("%02X", samples[0]) + ", " + String.format("%02X", samples[1]) + ". In short " + (short)samples[0] + ", " + (short)samples[1] + " and in hex format as a short: " + String.format("%02X", (short)samples[0]) + ", " + String.format("%02X", (short)samples[1]));
 
                         // write to buffer
                         byte[] decodedSound = new byte[4];
@@ -346,6 +346,9 @@ outerloop:
             }
         }
 
+        sendSocket.close();
+        long timeAfter = System.currentTimeMillis();
+
         System.out.println("\nComplete byte content of the sound file in hexadecimal format:");
         byte[] completeDataSound = bufferSound.toByteArray();
         for (byte i : completeDataSound) {
@@ -355,6 +358,7 @@ outerloop:
 
         System.out.println("\n\nTotal number of packages: " + (countPackets));
         System.out.println("How many Kbytes is the sound? " + completeDataSound.length/(float)1000 + "\nHow many Kbytes is the data that was actually sent? " + packetsSize/(float)1000);
+        System.out.println("Total amount of time to receive sound data: " + (timeAfter - timeBefore)/(float)1000 + " seconds");
 
         boolean isBigEndian = false; // only in 16 bit samples does matter. In AQ-DPCM we use 16 bit encoding
         int encodingBits = 8;
@@ -402,7 +406,7 @@ outerloop:
 
         System.out.println("\n--------------------Ithakicopter-UDP--------------------");
 
-        DatagramSocket socketCopter = new DatagramSocket(48038);
+        DatagramSocket socketCopter = new DatagramSocket(48048);
         socketCopter.setSoTimeout(2500);
 
         byte[] rxbufferCopter = new byte[64];
@@ -413,7 +417,7 @@ outerloop:
                 socketCopter.receive(receivePacket);
                 String message = new String(receivePacket.getData(), StandardCharsets.US_ASCII); // convert binary to ASCI
                 System.out.println("Ithaki responded with: " + message);
-
+                socketCopter.close();
             }
             catch (Exception x) {
                 System.out.println(x + ". Ithakicopter application failed");
@@ -422,13 +426,55 @@ outerloop:
         }
 
 
-        System.out.println("--------------------Ithakicopter-TCP------------------------------");
+        System.out.println("\n--------------------TCP------------------------------");
 
 
-        // close sockets
-        System.out.println("\nClosing sockets....");
-        sendSocket.close();
-        socketCopter.close();
+        try {
+            serverPort = 80;
+            Socket socketTCP = new Socket(hostAddress, serverPort); // establish connection
+            socketTCP.setSoTimeout(3000);
+            InputStream in = socketTCP.getInputStream(); // what I receive from the server
+            OutputStream out = socketTCP.getOutputStream(); // what i send to the server
+
+            out.write("GET /netlab/hello.html HTTP/1.0\r\nHost: ithaki.eng.auth.gr:80\r\n\r\n".getBytes());
+            byte[] inputBuffer = in.readAllBytes();
+            String message = new String(inputBuffer, StandardCharsets.US_ASCII);
+            System.out.println("Ithaki responded via TCP with: " + message);
+
+            socketTCP.close();
+        }
+        catch (Exception x) {
+            System.out.println(x + "TCP application failed");
+        }
+
+
+        System.out.println("\n--------------------Ithakicopter-TCP------------------------------");
+
+        try {
+
+            serverPort = 38048;
+            Socket socketTCP = new Socket(hostAddress, serverPort); // establish connection
+            //socketTCP.setSoTimeout(10000);
+            for (int i=0;i<5;i++){
+            InputStream in = socketTCP.getInputStream(); // what I receive from the server
+            OutputStream out = socketTCP.getOutputStream(); // what i send to the server
+            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
+            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
+            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
+            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
+            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
+            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
+            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
+            byte[] inputBuffer = in.readAllBytes();
+            String message = new String(inputBuffer, StandardCharsets.US_ASCII);
+            System.out.println("Ithaki responded via TCP with: \n" + message);
+        }
+        socketTCP.close();
+        }
+        catch (Exception x) {
+            System.out.println(x + "Ithakicopter TCP application failed");
+        }
+
 
         System.out.println("\nx--------------------END OF JAVA APPLICATION--------------------x");
         }
