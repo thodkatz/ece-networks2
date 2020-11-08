@@ -450,29 +450,31 @@ outerloop:
 
         System.out.println("\n--------------------Ithakicopter-TCP------------------------------");
 
-        try {
+        for (int i=0;i<5;i++){
+            try {
 
-            serverPort = 38048;
-            Socket socketTCP = new Socket(hostAddress, serverPort); // establish connection
-            //socketTCP.setSoTimeout(10000);
-            for (int i=0;i<5;i++){
-            InputStream in = socketTCP.getInputStream(); // what I receive from the server
-            OutputStream out = socketTCP.getOutputStream(); // what i send to the server
-            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
-            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
-            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
-            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
-            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
-            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
-            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
-            byte[] inputBuffer = in.readAllBytes();
-            String message = new String(inputBuffer, StandardCharsets.US_ASCII);
-            System.out.println("Ithaki responded via TCP with: \n" + message);
-        }
-        socketTCP.close();
-        }
-        catch (Exception x) {
-            System.out.println(x + "Ithakicopter TCP application failed");
+                serverPort = 38048;
+                Socket socketTCP = new Socket(hostAddress, serverPort); // establish connection
+                //socketTCP.setSoTimeout(10000);
+                InputStream in = socketTCP.getInputStream(); // what I receive from the server
+                OutputStream out = socketTCP.getOutputStream(); // what i send to the server
+
+                // if you want to repeat the process you need each time to redefine the socket. Loop the out.write and receive will not work as intended
+                // server will respond at the moment of the request, so we need to send more than one to handle the lag between ithakicopter and server response
+                out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes()); 
+                out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
+                out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
+                System.out.println("Created TCP socket and set output stream... Waiting for response");
+                timeBefore = System.currentTimeMillis();
+                byte[] inputBuffer = in.readAllBytes();
+                System.out.println("Ithaki TCP time response: " + (System.currentTimeMillis()-timeBefore)/(float)1000 + " seconds");
+                String message = new String(inputBuffer, StandardCharsets.US_ASCII);
+                System.out.println("Ithaki responded via TCP with: \n" + message);
+                socketTCP.close();
+            }
+            catch (Exception x) {
+                System.out.println(x + "Ithakicopter TCP application failed");
+            }
         }
 
 
