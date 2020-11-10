@@ -7,7 +7,7 @@ import javax.sound.sampled.*;
 import java.lang.Math.*;
 import java.util.Arrays;
 
-class Client {
+class UserApplication {
     public static void main (String[] args) throws Exception {
         System.out.println("Java socket programming assignment is inititated...\n"); // just to get it going. Treat light weights as heavy and then the heavy will become light.
 
@@ -405,7 +405,9 @@ outerloop:
             System.out.println(x + ". Sound file creation failed");
         }
 
-        System.out.println("\n--------------------Ithakicopter-UDP--------------------");
+        System.out.println("\n--------------------Ithakicopter-UDP receive--------------------");
+
+        // open the jar app for the send
 
         DatagramSocket socketCopter = new DatagramSocket(48078);
         socketCopter.setSoTimeout(2500);
@@ -480,7 +482,7 @@ outerloop:
 
         System.out.println("\n---------------------Car Diagnostics TCP-------------------------------");
         
-        String[] carPreamble = {"01 1F\r", "01 0F\r", "01 11\r", "01 0C\r", "01, 0D\r", "01 05\r"};
+        String[] carPreamble = {"01 1F\r", "01 0F\r", "01 11\r", "01 0C\r", "01 0D\r", "01 05\r"};
         for (String mode : carPreamble) {
             try {                                                                                                                
                 serverPort = 29078;
@@ -498,10 +500,10 @@ outerloop:
                 System.out.println("Preamble: " + mode + ". Ithaki responded via TCP with: \n" + messageCar);
 
                 byte[] byte1 = Arrays.copyOfRange(inputCarBuffer, 6, 8); // trying to parse the string. The last argument is exclusive
-                byte[] byte2 = Arrays.copyOfRange(inputCarBuffer, 9, 11); // trying to parse the string
                 String byte1String = new String(byte1, StandardCharsets.US_ASCII);
-                String byte2String = new String(byte2, StandardCharsets.US_ASCII);
                 System.out.print("\n" + byte1String); // I think the response is string
+                byte[] byte2 = Arrays.copyOfRange(inputCarBuffer, 9, 11); // trying to parse the string
+                String byte2String = new String(byte2, StandardCharsets.US_ASCII);
                 System.out.println(" " + byte2String); // I think the response is string
 
                 socketCar.close();
@@ -515,23 +517,28 @@ outerloop:
         System.out.println("\n---------------------Car Diagnostics UDP-------------------------------");
 
         DatagramSocket socketCar = new DatagramSocket(48033); 
-        requestCode = "V6453OBD=01 1F";
-        byte[] txbufferCar = requestCode.getBytes();
-        serverPort = 38033;
-        DatagramPacket packetCar = new DatagramPacket(txbufferCar, txbufferCar.length, hostAddress, serverPort);
-        socketCar.setSoTimeout(3000);
-        byte[] rxbufferCar = new byte[128];
-        receivePacket= new DatagramPacket(rxbufferCar, rxbufferCar.length);
 
-        try {
-            socketCar.send(packetCar);
-            socketCar.receive(receivePacket);
-            String responseCar = new String(receivePacket.getData(), StandardCharsets.US_ASCII);
-            System.out.println("Ithaki responded with: " + responseCar);
-        }
-        catch (Exception x) {
-            System.out.println(x + "Car diagnostics UDP failed");
+        
+        String[] carPreambleUDP = {"01 1F", "01 0F", "01 11", "01 0C", "01 0D", "01 05"};
+        for (String mode : carPreambleUDP) {
+            requestCode = "V6453OBD=" + mode;
+            byte[] txbufferCar = requestCode.getBytes();
+            serverPort = 38033;
+            DatagramPacket packetCar = new DatagramPacket(txbufferCar, txbufferCar.length, hostAddress, serverPort);
+            socketCar.setSoTimeout(3000);
+            byte[] rxbufferCar = new byte[128];
+            receivePacket= new DatagramPacket(rxbufferCar, rxbufferCar.length);
 
+            try {
+                socketCar.send(packetCar);
+                socketCar.receive(receivePacket);
+                String responseCar = new String(receivePacket.getData(), StandardCharsets.US_ASCII);
+                System.out.println("Ithaki responded with: " + responseCar);
+            }
+            catch (Exception x) {
+                System.out.println(x + "Car diagnostics UDP failed");
+
+            }
         }
         socketCar.close();
        
