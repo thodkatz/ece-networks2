@@ -1,3 +1,5 @@
 *.class
 *.jpg
 *.wav
+*.txt
+*.vscode

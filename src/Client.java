@@ -5,6 +5,7 @@ import java.lang.System;
 import java.awt.Desktop;
 import javax.sound.sampled.*;
 import java.lang.Math.*;
+import java.util.Arrays;
 
 class Client {
     public static void main (String[] args) throws Exception {
@@ -38,10 +39,10 @@ class Client {
         // TODO create a script that is scraping from ithaki website the request code and the ports.
         byte[] clientIP = { (byte)192, (byte)168,  (byte)1, (byte)20};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
-        DatagramSocket sendSocket = new DatagramSocket(48044, clientAddress); 
-        String requestCode = "E1323";
+        DatagramSocket sendSocket = new DatagramSocket(48009, clientAddress); 
+        String requestCode = "E2614";
         byte[] txbuffer = requestCode.getBytes();
-        int serverPort = 38044;
+        int serverPort = 38009;
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
         DatagramPacket sendPacket = new DatagramPacket(txbuffer, txbuffer.length, hostAddress, serverPort);
@@ -80,7 +81,7 @@ class Client {
 
 
         System.out.println("\n--------------------Temperature measurements--------------------");
-        requestCode = "E1323T00";
+        requestCode = "E2614T00";
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         for(int i = 0; i<=4 ; i++) {
@@ -115,7 +116,7 @@ class Client {
 
             System.out.println("\n--------------------Image application---------------------");
             //requestCode = "M9621CAM=PTZUDP=1024DIR=" + args[0];
-            requestCode = "M2893UDP=1024";
+            requestCode = "M7909UDP=1024";
             //requestCode = "M2973CAM=PTZUDP=1024";
             System.out.println("The request code is " + requestCode);
             txbuffer = requestCode.getBytes();
@@ -206,7 +207,7 @@ outerloop:
         String numAudioPackets = "100";
         String typeModulation = "AQ"; // TODO: command line arguement
         //String typeModulation = ""; 
-        requestCode = "A6381" + typeModulation + "F" + numAudioPackets;
+        requestCode = "A9986" + typeModulation + "F" + numAudioPackets;
         txbuffer = requestCode.getBytes();
         sendPacket.setData(txbuffer, 0, txbuffer.length);
         sendSocket.send(sendPacket);
@@ -406,10 +407,10 @@ outerloop:
 
         System.out.println("\n--------------------Ithakicopter-UDP--------------------");
 
-        DatagramSocket socketCopter = new DatagramSocket(48048);
+        DatagramSocket socketCopter = new DatagramSocket(48078);
         socketCopter.setSoTimeout(2500);
 
-        byte[] rxbufferCopter = new byte[64];
+        byte[] rxbufferCopter = new byte[128];
         receivePacket.setData(rxbufferCopter, 0, rxbufferCopter.length);
 
         for (int i=0; i<4;i++) {
@@ -417,13 +418,13 @@ outerloop:
                 socketCopter.receive(receivePacket);
                 String message = new String(receivePacket.getData(), StandardCharsets.US_ASCII); // convert binary to ASCI
                 System.out.println("Ithaki responded with: " + message);
-                socketCopter.close();
             }
             catch (Exception x) {
                 System.out.println(x + ". Ithakicopter application failed");
             }
         
         }
+        socketCopter.close();
 
 
         System.out.println("\n--------------------TCP------------------------------");
@@ -452,7 +453,6 @@ outerloop:
 
         for (int i=0;i<5;i++){
             try {
-
                 serverPort = 38048;
                 Socket socketTCP = new Socket(hostAddress, serverPort); // establish connection
                 //socketTCP.setSoTimeout(10000);
@@ -478,6 +478,65 @@ outerloop:
         }
 
 
+        System.out.println("\n---------------------Car Diagnostics TCP-------------------------------");
+        
+        String[] carPreamble = {"01 1F\r", "01 0F\r", "01 11\r", "01 0C\r", "01, 0D\r", "01 05\r"};
+        for (String mode : carPreamble) {
+            try {                                                                                                                
+                serverPort = 29078;
+                Socket socketCar = new Socket(hostAddress, serverPort); // establish connection
+                //socketTCP.setSoTimeout(10000);
+                InputStream inCar = socketCar.getInputStream(); // what I receive from the server
+                OutputStream outCar = socketCar.getOutputStream(); // what i send to the server
+
+                outCar.write(mode.getBytes()); 
+                System.out.println("Created TCP socket and set output stream... Waiting for response");
+                timeBefore = System.currentTimeMillis();
+                byte[] inputCarBuffer = inCar.readAllBytes();
+                System.out.println("Ithaki TCP time response: " + (System.currentTimeMillis()-timeBefore)/(float)1000 + " seconds");
+                String messageCar = new String(inputCarBuffer, StandardCharsets.US_ASCII);
+                System.out.println("Preamble: " + mode + ". Ithaki responded via TCP with: \n" + messageCar);
+
+                byte[] byte1 = Arrays.copyOfRange(inputCarBuffer, 6, 8); // trying to parse the string. The last argument is exclusive
+                byte[] byte2 = Arrays.copyOfRange(inputCarBuffer, 9, 11); // trying to parse the string
+                String byte1String = new String(byte1, StandardCharsets.US_ASCII);
+                String byte2String = new String(byte2, StandardCharsets.US_ASCII);
+                System.out.print("\n" + byte1String); // I think the response is string
+                System.out.println(" " + byte2String); // I think the response is string
+
+                socketCar.close();
+            }
+            catch (Exception x) {
+                System.out.println(x + "Ithakicopter TCP application failed");
+            }
+        }
+
+
+        System.out.println("\n---------------------Car Diagnostics UDP-------------------------------");
+
+        DatagramSocket socketCar = new DatagramSocket(48033); 
+        requestCode = "V6453OBD=01 1F";
+        byte[] txbufferCar = requestCode.getBytes();
+        serverPort = 38033;
+        DatagramPacket packetCar = new DatagramPacket(txbufferCar, txbufferCar.length, hostAddress, serverPort);
+        socketCar.setSoTimeout(3000);
+        byte[] rxbufferCar = new byte[128];
+        receivePacket= new DatagramPacket(rxbufferCar, rxbufferCar.length);
+
+        try {
+            socketCar.send(packetCar);
+            socketCar.receive(receivePacket);
+            String responseCar = new String(receivePacket.getData(), StandardCharsets.US_ASCII);
+            System.out.println("Ithaki responded with: " + responseCar);
+        }
+        catch (Exception x) {
+            System.out.println(x + "Car diagnostics UDP failed");
+
+        }
+        socketCar.close();
+       
+
         System.out.println("\nx--------------------END OF JAVA APPLICATION--------------------x");
+
         }
     }
