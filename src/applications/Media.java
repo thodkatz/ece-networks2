@@ -13,6 +13,10 @@ import java.util.Arrays;
 import javax.sound.sampled.*;
 
 public class Media {
+
+    private static String pathFileImage = "/home/tkatz/repos/ece-networks2-assignment/media/image/sandbox/ithaki_image.jpg";
+    private static String pathFileSound = "/home/tkatz/repos/ece-networks2-assignment/media/music/sandbox/track.wav";
+
     public static void image(DatagramSocket socket, InetAddress hostAddress, int serverPort, String requestCode) throws IOException {
 
         //if (numImage != (Integer.parseInt(args[1])-1)){
@@ -31,6 +35,7 @@ public class Media {
         DatagramPacket sendPacket = new DatagramPacket(txbufferImage, txbufferImage.length, hostAddress, serverPort);
         DatagramPacket receivePacket= new DatagramPacket(rxbufferImage, rxbufferImage.length);
 
+        // TX
         try {
             socket.send(sendPacket);	
         }
@@ -42,6 +47,7 @@ public class Media {
         System.out.println("I am sleeping... Camera needs time to readjust");
         //Thread.sleep(5000); // sleep in order for the camera to readjust	
 
+        // RX
 outerloop:
         try {
             socket.setSoTimeout(3000);
@@ -84,7 +90,7 @@ outerloop:
         System.out.println("How many Kbytes is the image? " + completeDataImage.length/(float)1000);
 
         // save image to a file
-        File imageFile = new File("../media/image/sandbox/ithaki_image.jpg");
+        File imageFile = new File(pathFileImage);
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(imageFile);
@@ -127,7 +133,7 @@ outerloop:
             type = requestCode.substring(5, 6);
             numAudioPackets = requestCode.substring(6, 9);
         }
-        System.out.print("Encoding: " + encoding + ". Type: " + type + ". Number of packets: " + numAudioPackets);
+        System.out.println("Requested: Encoding: " + encoding + ". Type: " + type + ". Number of packets: " + numAudioPackets);
 
         // TX
         byte[] txbufferSound = requestCode.getBytes();
@@ -215,7 +221,7 @@ outerloop:
             Thread.sleep(1000);
             System.out.println(", 1...");
             Thread.sleep(500);
-            System.out.println("GOOOOOO");
+            System.out.println("Listening...");
             Thread.sleep(500);
             outputAudio.write(completeDataSound, 0, completeDataSound.length);
             outputAudio.stop();
@@ -231,7 +237,7 @@ outerloop:
         try{
             ByteArrayInputStream bufferSoundInput = new ByteArrayInputStream(completeDataSound);
             AudioInputStream streamSoundInput = new AudioInputStream(bufferSoundInput, modulationPCM, completeDataSound.length / modulationPCM.getFrameSize());
-            AudioSystem.write(streamSoundInput, AudioFileFormat.Type.WAVE, new File("../media/music/sandbox/track.wav"));
+            AudioSystem.write(streamSoundInput, AudioFileFormat.Type.WAVE, new File(pathFileSound));
             System.out.println("Sound file creation success");
         }
         catch (Exception x) {
