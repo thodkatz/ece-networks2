@@ -148,11 +148,25 @@ class UserApplication {
         Thread.sleep(1000); // pause a bit to catch up with the user
         System.out.println("Press ENTER to exit");
         Thread.sleep(1000); 
+        int target1 = 130;
         while (System.in.available() == 0) {
             Copter.udpTelemetry(socket, hostAddress, serverPort);
 
         }
 
+        /* --------------------------- Autopilot --------------------------- */
+        Socket socketAuto = new Socket(hostAddress, 38048);
+        input = new Scanner(new File("stamps/copter_tcp.txt"));
+        while (input.hasNextLine())
+        {
+            System.out.println(input.nextLine());
+        }
+        Thread.sleep(1500); // pause a little bit to enjoy the view
+
+        int lowerBound = 170;
+        int higherBound = 180;
+        Copter.autopilot(socket, hostAddress, serverPort, socketAuto, Math.min(200, Math.max(150, lowerBound)), Math.min(200, Math.max(150, higherBound)));
+        socketAuto.close();
 
 
         /* --------------------------- Close UDP sockets --------------------------- */
@@ -174,6 +188,24 @@ class UserApplication {
         //https(httpsSocket);
         //httpsSocket.close();
 
+        /* --------------------------- Ithakicopter TCP--------------------------- */
+        // can we use 38098? If we open the website we see that this is the port opened
+        Socket socketCopter = new Socket(hostAddress, 38048);
+        input = new Scanner(new File("stamps/copter_tcp.txt"));
+        while (input.hasNextLine())
+        {
+            System.out.println(input.nextLine());
+        }
+        Thread.sleep(1500); // pause a little bit to enjoy the view
+
+        int target = 180;
+        for (int i = 0; i<10; i++) {
+            Thread.sleep(2000);
+        Copter.tcpTelemetry(socketCopter, target);
+        }
+
+        //socketCopter.close();
+
 
 
         /* --------------------------- Vehicle OBD TCP--------------------------- */
@@ -185,81 +217,16 @@ class UserApplication {
         }
         Thread.sleep(1500); // pause a little bit to enjoy the view
 
-        //for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 5; i++) {
             Obd.tcpTelemetry(socketVehicle);
-        //}
+        }
         socketVehicle.close();
 
 
-
-
-        /* --------------------------- Ithakicopter TCP--------------------------- */
-        // can we use 38098? If we open the website we see that this is the port opened
-        Socket socketCopter = new Socket(hostAddress, 38048);
-        input = new Scanner(new File("stamps/copter_tcp.txt"));
-        while (input.hasNextLine())
-        {
-            System.out.println(input.nextLine());
-        }
-        Thread.sleep(1500); // pause a little bit to enjoy the view
-
-        for (int i = 0; i < 20; i++) {
-            Copter.tcpTelemetry(socketCopter);
-            //Copter.tcpTelemetry(socketCopter);
-        }
-
-        //socketCopter.close();
+        Copter.tcpTelemetry(socketCopter, target);
 
 
 
-        /* --------------------------- Autopilot --------------------------- */
-        Socket socketAuto = new Socket(hostAddress, 38048);
-        input = new Scanner(new File("stamps/copter_tcp.txt"));
-        while (input.hasNextLine())
-        {
-            System.out.println(input.nextLine());
-        }
-        Thread.sleep(1500); // pause a little bit to enjoy the view
-
-        int lowerBound = 170;
-        int higherBound = 180;
-        //Copter.autopilot(socketAuto, Math.min(200, Math.max(150, lowerBound)), Math.min(200, Math.max(150, higherBound)));
-        socketAuto.close();
-
-
-
-
-
-        //System.out.println("\n--------------------Ithakicopter-TCP------------------------------");
-
-        //try {
-
-        //    serverPort = 38048;
-        //    Socket socketTCP = new Socket(hostAddress, serverPort); // establish connection
-        //    //socketTCP.setSoTimeout(10000);
-        //    for (int i=0;i<60;i++){
-        //    InputStream in = socketTCP.getInputStream(); // what I receive from the server
-        //    OutputStream out = socketTCP.getOutputStream(); // what i send to the server
-        //    BufferedReader bf = new BufferedReader(new InputStreamReader(in));
-        //    //byte[] inputBuffer2 = in.readAllBytes();
-        //    //in.skipNBytes(427); // skip welcome data
-        //    //for (int i=0;i<60;i++){
-        //    out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
-        //    out.flush();
-        //    System.out.println(bf.readLine());
-        //    Thread.sleep(500);
-        //    //byte[] data = in.readNBytes(60);
-        //    //byte[] inputBuffer = in.readAllBytes();
-        //    //String message = new String(inputBuffer, StandardCharsets.US_ASCII);
-        //    //String message2 = new String(inputBuffer2, StandardCharsets.US_ASCII);
-        //    //System.out.println("Ithaki responded via TCP with: \n" + message);
-        //    //System.out.println("Ithaki responded via TCP with: \n" + message2);
-        //}
-        ////socketTCP.close();
-        //}
-        //catch (Exception x) {
-        //    System.out.println(x + "Ithakicopter TCP application failed");
-        //}
 
 
 

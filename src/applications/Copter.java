@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.io.ByteArrayOutputStream;
 
 public class Copter {
-    public static void udpTelemetry(DatagramSocket socket, InetAddress hostAddress, int serverPort) {
+    public static String udpTelemetry(DatagramSocket socket, InetAddress hostAddress, int serverPort) {
         // TX
         // open ithakicopter.jar
 
@@ -23,95 +23,80 @@ public class Copter {
         DatagramPacket receivePacket = new DatagramPacket(rxbuffer, rxbuffer.length);
 
         long timeBefore = System.currentTimeMillis();
+        String telemetry = new String();
         try{
             socket.setSoTimeout(3000);
             socket.receive(receivePacket);
-            System.out.print("Time repsonse: " + (System.currentTimeMillis() - timeBefore));
-            System.out.println(". Received data: " + new String(rxbuffer, StandardCharsets.US_ASCII));
+            telemetry = new String(rxbuffer, StandardCharsets.US_ASCII);
+            //System.out.print("Time repsonse: " + (System.currentTimeMillis() - timeBefore)/(float)1000);
+            System.out.println("Received data: " + telemetry);
         }
         catch (Exception x) {
             System.out.println(x);
             System.out.println("RX UDP ithakicopter failed");
         }
+        return telemetry; 
 
     }
 
-    public static void tcpTelemetry(Socket socket) {
+    public static String tcpTelemetry(Socket socket, int target) {
+        String data = "";
         try {                                                                                                                
             InputStream in = socket.getInputStream(); 
             OutputStream out= socket.getOutputStream(); 
             BufferedReader bf = new BufferedReader(new InputStreamReader(in)); // wrapper on top of the wrapper as java docs recommends
 
-            out.write("AUTO FLIGHTLEVEL=200 LMOTOR=180 RMOTOR=180 PILOT \r\n".getBytes());
+            String command = "AUTO FLIGHTLEVEL=" + target + " LMOTOR=" + target + " RMOTOR=" + target +  " PILOT \r\n";
+            //System.out.print("Request: " + command);
+            out.write(command.getBytes());
             out.flush();
-            long timeBefore = System.currentTimeMillis();
-            //System.out.println("Created TCP socket and set output stream... Waiting for response");
 
-            System.out.println(bf.readLine());
-            //ByteArrayOutputStream completeData = new ByteArrayOutputStream();
-            //String data = ""; 
-            //while ((data = bf.readLine()) != null) {
-            //        completeData.write((data + "\n").getBytes());
-            //}
-            //byte[] dataByte = completeData.toByteArray();
-            //System.out.println("Ithaki responded via TCP with: \n" + new String(dataByte, StandardCharsets.US_ASCII));
-            //System.out.println("Ithaki TCP time response: " + (System.currentTimeMillis()-timeBefore)/(float)1000 + " seconds");
-            //completeData.close();
+            data = bf.readLine();
+            System.out.println(data);
         }
         catch (Exception x) {
             System.out.println(x);
             System.out.println("Oops... Ithakicopter TCP failed");
 
         }
+        return data;
     }    
 
-    public static void autopilot(Socket socket, int lowerBound, int higherBound) {
+    public static void autopilot(DatagramSocket listen, InetAddress hostAddress, int serverPort, Socket send, int lowerBound, int higherBound) throws Exception{
 
         lowerBound = Math.min(lowerBound, higherBound);
         lowerBound = Math.max(lowerBound, higherBound);
 
-        // TX
-        // Due to tcp overhead of ithakicopter connection, we will try to send tcp and receive by udp. Requirement to open the jar file
-        // In other words, use tcp to send and get feedback from jar. UDP telemetry feels snappy. Or no?
-        // RX
+        int target = (lowerBound + higherBound)/2;
+        int motor = -1;
 
-          try {                                                                                                                
-            InputStream in = socket.getInputStream(); 
-            OutputStream out= socket.getOutputStream(); 
-            BufferedReader bf = new BufferedReader(new InputStreamReader(in)); // wrapper on top of the wrapper as java docs recommends
+        OutputStream out= send.getOutputStream(); 
 
+        System.out.println("AUTOPILOT: ON");
+        System.out.println("You need to open ithakicopter.jar");
+        System.out.println("Press Control-C to exit...");
+        Thread.sleep(1000);
+        for (;;) {
+            if (motor<lowerBound || motor>higherBound) { 
+                System.out.println("Now I will send and listen via TCP");
+                String command = "AUTO FLIGHTLEVEL=" + target + " LMOTOR=" + target + " RMOTOR=" + target +  " PILOT \r\n";
+                out.write(command.getBytes());
+                out.flush();
+                //tcpTelemetry(send, target);
+                }
 
-            int target = (higherBound + lowerBound)/2; // init value
-            int level = target;
-            int feedback = target;
-            for (;;) {
-                do {
-                    String command = "AUTO FLIGHTLEVEL=" + level + "LMOTOR=" + level + " RMOTOR=" + level + " PILOT \r\n"; 
-                    out.write(command.getBytes());
+                System.out.println("Now I will listen via UDP");
+                String telemetry = Copter.udpTelemetry(listen, hostAddress, serverPort);
+                System.out.println(telemetry);
+                //String[] tokens = telemetry.split("ALTITUDE=");
+                String[] tokens = telemetry.split("LMOTOR=");
+                //for (String i : tokens) {
+                    //System.out.println(i);
+                //}
+                motor = Integer.parseInt(tokens[1].substring(0,3)); // get motor values 
 
-                    ByteArrayOutputStream completeData = new ByteArrayOutputStream();
-                    String data = ""; 
-                    while ((data = bf.readLine()) != null) {
-                        completeData.write((data + "\n").getBytes());
-                    }
-                    byte[] dataByte = completeData.toByteArray();
-
-                    // parse string
-                    String[] tokens = (new String(dataByte, StandardCharsets.US_ASCII)).split("ALTITUDE=");
-                    for (String t : tokens) {
-                    System.out.println(t);
-                    System.out.println("I PRINTED TOKEN");
-                    }
-                    feedback = Integer.parseInt(tokens[2].substring(0,3)); // get the altitude
-                    System.out.println("My current feedback: " + feedback);
-                } while (Integer.compare(feedback, target) != 0);
-            }
+                System.out.println(motor);
         }
-        catch (Exception x) {
-            System.out.println(x);
-            System.out.println("Oops... Ithakicopter TCP failed");
-
-        }      
     }
 
 }
