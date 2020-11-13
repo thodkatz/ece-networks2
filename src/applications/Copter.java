@@ -29,7 +29,7 @@ public class Copter {
             socket.receive(receivePacket);
             telemetry = new String(rxbuffer, StandardCharsets.US_ASCII);
             //System.out.print("Time repsonse: " + (System.currentTimeMillis() - timeBefore)/(float)1000);
-            System.out.println("Received data: " + telemetry);
+            System.out.println("Received data via UDP: " + telemetry);
         }
         catch (Exception x) {
             System.out.println(x);
@@ -51,8 +51,9 @@ public class Copter {
             out.write(command.getBytes());
             out.flush();
 
+            //in.skipNBytes(427);
             data = bf.readLine();
-            System.out.println(data);
+            System.out.println("Received data via TCP: " + data);
         }
         catch (Exception x) {
             System.out.println(x);
@@ -62,7 +63,7 @@ public class Copter {
         return data;
     }    
 
-    public static void autopilot(DatagramSocket listen, InetAddress hostAddress, int serverPort, Socket send, int lowerBound, int higherBound) throws Exception{
+    public static void autopilot(DatagramSocket listen, InetAddress hostAddress, int serverPort, Socket send, int lowerBound, int higherBound) {
 
         lowerBound = Math.min(lowerBound, higherBound);
         lowerBound = Math.max(lowerBound, higherBound);
@@ -70,32 +71,35 @@ public class Copter {
         int target = (lowerBound + higherBound)/2;
         int motor = -1;
 
-        OutputStream out= send.getOutputStream(); 
+        try {
+        //OutputStream out= send.getOutputStream(); 
 
         System.out.println("AUTOPILOT: ON");
         System.out.println("You need to open ithakicopter.jar");
         System.out.println("Press Control-C to exit...");
         Thread.sleep(1000);
         for (;;) {
-            if (motor<lowerBound || motor>higherBound) { 
-                System.out.println("Now I will send and listen via TCP");
-                String command = "AUTO FLIGHTLEVEL=" + target + " LMOTOR=" + target + " RMOTOR=" + target +  " PILOT \r\n";
-                out.write(command.getBytes());
-                out.flush();
-                //tcpTelemetry(send, target);
+            if (motor<(target-10) || motor>(target+10)) { 
+                //String command = "AUTO FLIGHTLEVEL=" + target + " LMOTOR=" + target + " RMOTOR=" + target +  " PILOT \r\n";
+                //out.write(command.getBytes());
+                //out.flush();
+                send = new Socket(hostAddress, 38048); // if you remove this, it doesn't work
+                tcpTelemetry(send, target);
                 }
 
-                System.out.println("Now I will listen via UDP");
                 String telemetry = Copter.udpTelemetry(listen, hostAddress, serverPort);
-                System.out.println(telemetry);
-                //String[] tokens = telemetry.split("ALTITUDE=");
                 String[] tokens = telemetry.split("LMOTOR=");
                 //for (String i : tokens) {
                     //System.out.println(i);
                 //}
                 motor = Integer.parseInt(tokens[1].substring(0,3)); // get motor values 
 
-                System.out.println(motor);
+                System.out.println("Parsed motor values: " + motor);
+        }
+        }
+        catch (Exception x) {
+            System.out.println(x);
+            System.out.println("AUTOPILOT failed");
         }
     }
 
