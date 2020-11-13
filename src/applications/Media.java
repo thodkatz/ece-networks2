@@ -25,7 +25,6 @@ public class Media {
 
         byte[] txbufferImage = requestCode.getBytes();
         byte[] rxbufferImage = new byte[1024];
-        ByteArrayOutputStream bufferImage = new ByteArrayOutputStream();
         int countPackets = 0;
         long timeBefore = System.currentTimeMillis();
         long timeBeforePerPacket = System.currentTimeMillis();
@@ -48,6 +47,7 @@ public class Media {
         //Thread.sleep(5000); // sleep in order for the camera to readjust	
 
         // RX
+        ByteArrayOutputStream bufferImage = new ByteArrayOutputStream();
 outerloop:
         try {
             socket.setSoTimeout(3000);

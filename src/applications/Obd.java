@@ -59,17 +59,18 @@ public class Obd {
     public static void tcpTelemetry(Socket socket) {
 
         try {                                                                                                                
-            InputStream inCar = socket.getInputStream(); 
-            OutputStream outCar = socket.getOutputStream(); 
-            BufferedReader in = new BufferedReader(new InputStreamReader(inCar)); // wrapper on top of the wrapper as java docs recommends
+            InputStream in = socket.getInputStream(); 
+            OutputStream out = socket.getOutputStream(); 
+            BufferedReader bf = new BufferedReader(new InputStreamReader(in)); // wrapper on top of the wrapper as java docs recommends
 
             for (int i = 0; i < header.length; i++) {
-                outCar.write((header[1] + "\r").getBytes());
+                out.write((header[i] + "\r").getBytes());
+                //out.flush();
                 long timeBefore = System.currentTimeMillis();
                 System.out.println("Created TCP socket and set output stream... Waiting for response");
 
                 System.out.println("Header: " + header[i]); 
-                String data = in.readLine();
+                String data = bf.readLine();
                 System.out.println("Ithaki responded via TCP with: " + data);
                 System.out.println("Ithaki TCP time response: " + (System.currentTimeMillis()-timeBefore)/(float)1000 + " seconds");
                 
@@ -123,13 +124,13 @@ public class Obd {
         String byte1 = data.substring(6,8);
         // how to convert hexadecimal string to int?
         int first = Integer.parseInt(byte1, 16);
-        System.out.print("Parsing the data: 1st byte: " + byte1);
+        System.out.print("Parsing the data: 1st byte: " + byte1 + " and as an integer: " + first);
         String byte2 = "";
         int second = 0;
         if (data.length()>8) {
             byte2 = data.substring(9,11);
-            second = Integer.parseInt(byte2, 8);
-            System.out.print(", 2nd byte: " + byte2);
+            second = Integer.parseInt(byte2, 16);
+            System.out.print(", 2nd byte: " + byte2 + " and as an integer: " + second);
         }
         System.out.println();
 
