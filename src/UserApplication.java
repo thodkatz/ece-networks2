@@ -193,8 +193,8 @@ case "8":
         }
         Thread.sleep(1500); // pause a little bit to enjoy the view
 
-        int lowerBound = 170;
-        int higherBound = 180;
+        int lowerBound = 160;
+        int higherBound = 190;
         Copter.autopilot(socket, hostAddress, serverPort, socketAuto, Math.min(200, Math.max(150, lowerBound)), Math.min(200, Math.max(150, higherBound)));
         socketAuto.close();
 break;
@@ -228,7 +228,7 @@ case "10":
 
         int target = 180;
         for (int i = 0; i<10; i++) {
-        Copter.tcpTelemetry(socketCopter, target);
+        System.out.println(new String(Copter.tcpTelemetry(hostAddress, target)));
         }
 
         socketCopter.close();
@@ -250,6 +250,64 @@ case "11":
         socketVehicle.close();
 break;
 
+case "12":
+        Socket foo = new Socket(hostAddress, 38048);
+        OutputStream out = foo.getOutputStream();
+        InputStream in = foo.getInputStream();
+        InputStreamReader isr = new InputStreamReader(in);
+        BufferedReader bf = new BufferedReader(isr);
+        ByteArrayOutputStream bis = new ByteArrayOutputStream();
+        
+        // if use readAllBytes the InputStream is closed
+        // actually readNBytes is quite weird to be honest
+        out.write("AUTO FLIGHTLEVEL=100 LMOTOR=100 RMOTOR=100 PILOT \r\n".getBytes());
+        String data = new String();
+        while ((data = bf.readLine()) != null) {
+            bis.write((data + "\n").getBytes());
+        }
+        data = new String(bis.toByteArray(), StandardCharsets.US_ASCII);
+        System.out.println(data);
+break;
+
+case "13":
+            
+        // Major difference between this code snippet and the above is the reposnse time! Actually it is all about null and ending stream!
+        Socket foo1 = new Socket(hostAddress, 38048);
+        OutputStream out1 = foo1.getOutputStream();
+        InputStream in1 = foo1.getInputStream();
+        InputStreamReader isr1 = new InputStreamReader(in1);
+        BufferedReader bf1 = new BufferedReader(isr1);
+        
+        // if use readAllBytes the InputStream is closed
+        // actually readNBytes is quite weird to be honest
+        for (int i = 0; i < 4; i++) {
+        out1.write("AUTO FLIGHTLEVEL=100 LMOTOR=100 RMOTOR=100 PILOT \r\n".getBytes());
+        //String data1 = new String(in1.readNBytes(427), StandardCharsets.US_ASCII);
+        //System.out.println(data1);
+        //System.out.println(bf1.readLine());
+        //System.out.println(bf1.readLine());
+        
+        //for (int i = 0; i < 40; i++) {
+        //    System.out.println(bf1.readLine());
+        //}
+        // In general we have a lag when reading if we are in the end of the stream
+
+        //while(bf1.readLine() != null) {System.out.println(bf1.readLine());} // warning bf read is called two times
+        // waiting to encounter null isn't good. Too much lag. Waiting if the stream is closed or not
+        
+        // why we do this? Ithaki when establishing this connection first send some introductory info and then the actual telemetry. So you need to handle streams in a proper way!
+        if (i==0) {
+            for (int l = 0; l < 14; l++) { // after some tinkering we have the data
+                System.out.println(bf1.readLine());
+            }
+        }
+        else {
+            System.out.println(bf1.readLine());
+        }
+        }
+
+
+break;
 
 default:
     System.out.println("Please provide a valid input. If you want to exit then press Control-C.\n");

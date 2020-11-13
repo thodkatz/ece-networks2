@@ -39,12 +39,15 @@ public class Copter {
 
     }
 
-    public static String tcpTelemetry(Socket socket, int target) {
-        String data = "";
+    public static String tcpTelemetry(InetAddress hostAddress, int target) {
+        String telemetry = "";
+        Socket socket = new Socket();
         try {                                                                                                                
+            socket = new Socket(hostAddress, 38048);
             InputStream in = socket.getInputStream(); 
             OutputStream out= socket.getOutputStream(); 
             BufferedReader bf = new BufferedReader(new InputStreamReader(in)); // wrapper on top of the wrapper as java docs recommends
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
             String command = "AUTO FLIGHTLEVEL=" + target + " LMOTOR=" + target + " RMOTOR=" + target +  " PILOT \r\n";
             //System.out.print("Request: " + command);
@@ -52,46 +55,57 @@ public class Copter {
             out.flush();
 
             //in.skipNBytes(427);
-            data = bf.readLine();
-            System.out.println("Received data via TCP: " + data);
+            for (int i = 0; i < 14; i++) {
+                bos.write((bf.readLine() + "\n").getBytes());
+            }
+            String data = new String(bos.toByteArray(), StandardCharsets.US_ASCII);
+            //System.out.println("Received data via TCP: " + data);
+
+            String[] tokens = data.split("\n");
+            telemetry = tokens[13];
         }
         catch (Exception x) {
             System.out.println(x);
             System.out.println("Oops... Ithakicopter TCP failed");
-
         }
-        return data;
+        try {
+        socket.close();
+        }
+        catch (Exception x) {
+            System.out.println(x);
+            System.out.println("Failed to close socket for ithakicopter TCP");
+        }
+        return telemetry;
     }    
 
+
+    /* 
+     * tcpTelemetry function for the TX and udpTelemetry for RX. The way that these two functions are implemented force the autopilot to be used with a combination of these two. We want to send a command 
+     * only if it is needed and we want to listen all the time to get feedback.
+     * 
+     */
     public static void autopilot(DatagramSocket listen, InetAddress hostAddress, int serverPort, Socket send, int lowerBound, int higherBound) {
 
         lowerBound = Math.min(lowerBound, higherBound);
-        lowerBound = Math.max(lowerBound, higherBound);
+        higherBound = Math.max(lowerBound, higherBound);
 
         int target = (lowerBound + higherBound)/2;
         int motor = -1;
 
         try {
-        //OutputStream out= send.getOutputStream(); 
-
         System.out.println("AUTOPILOT: ON");
-        System.out.println("You need to open ithakicopter.jar");
+        System.out.println("You need to open ithakicopter.jar. Press ENTER to continue...");
+        System.in.read();
         System.out.println("Press Control-C to exit...");
         Thread.sleep(1000);
         for (;;) {
-            if (motor<(target-10) || motor>(target+10)) { 
-                //String command = "AUTO FLIGHTLEVEL=" + target + " LMOTOR=" + target + " RMOTOR=" + target +  " PILOT \r\n";
-                //out.write(command.getBytes());
-                //out.flush();
-                send = new Socket(hostAddress, 38048); // if you remove this, it doesn't work
-                tcpTelemetry(send, target);
+            if ((motor<(lowerBound)) || (motor>(higherBound))) { 
+                System.out.println("Send packet. Readjust...");
+                tcpTelemetry(hostAddress, target);
                 }
 
                 String telemetry = Copter.udpTelemetry(listen, hostAddress, serverPort);
                 String[] tokens = telemetry.split("LMOTOR=");
-                //for (String i : tokens) {
-                    //System.out.println(i);
-                //}
                 motor = Integer.parseInt(tokens[1].substring(0,3)); // get motor values 
 
                 System.out.println("Parsed motor values: " + motor);
