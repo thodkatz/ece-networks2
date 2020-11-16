@@ -40,27 +40,28 @@ class UserApplication {
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
-        int serverPort = 38011;
-        int clientPort = 48011;
-        String requestCodeEcho = "E0831";
-        String requestCodeImage = "M6147UDP=1024";
-        String requestCodeSound = "A0352"; 
-        String requestCodeCopter = "Q6734"; 
-        String requestCodeVehicle = "V0982"; 
+        int serverPort = 38004;
+        int clientPort = 48004;
+        String requestCodeEcho = "E9323";
+        String requestCodeImage = "M6443UDP=1024";
+        String requestCodeSound = "A3556"; 
+        String requestCodeCopter = "Q8129"; 
+        String requestCodeVehicle = "V1436"; 
         
         DatagramSocket socket = new DatagramSocket(clientPort);       
 
 
         int flag =1; // control user input
         do {
-        System.out.println("Please enter a number (1-9) that correspond to the application you want to run. Available options are:\n1) Echo with delay\n2) Echo no delay\n3) Temperature\n4) Image\n5) Music\n6) Vehicle UDP\n7) Ithakicopter UDP\n8) Autopilot\n9) HTTPS TCP\n10) Ithakicopter TCP\n11) Vehicle TCP");
+        System.out.println("\nPlease enter a number (1-11) that corresponds to the application you want to run. Available options are:\n1) Echo with delay\n2) Echo no delay\n3) Temperature\n4) Image\n5) Music\n6) Vehicle UDP\n7) Ithakicopter UDP\n8) Autopilot\n9) HTTPS TCP\n10) Ithakicopter TCP\n11) Vehicle TCP");
         String choiceApp = (new Scanner(System.in)).nextLine();
+        //String choiceApp = "5";
 
         //checkArguements(args); // check the validity of command line arguement
         
 
         switch (choiceApp) {
-case "1":
+        case "1":
 
         /* --------------------------- Echo --------------------------- */
         input = new Scanner(new File("stamps/echo.txt"));
@@ -75,9 +76,9 @@ case "1":
              System.out.println();
         }
         socket.close();
-break;
+        break;
 
-case "2":
+        case "2":
         input = new Scanner(new File("stamps/echo.txt"));
         while (input.hasNextLine())
         {
@@ -91,11 +92,11 @@ case "2":
              System.out.println();
         }
         socket.close();
-break;
+        break;
 
 
 
-case "3":
+        case "3":
         /* --------------------------- Temperature --------------------------- */
         input = new Scanner(new File("stamps/temp.txt"));
         while (input.hasNextLine())
@@ -109,9 +110,9 @@ case "3":
              System.out.println();
         }
         socket.close();
-break;
+        break;
 
-case "4":
+        case "4":
         /* --------------------------- Image --------------------------- */
         input = new Scanner(new File("stamps/image.txt"));
         while (input.hasNextLine())
@@ -125,9 +126,9 @@ case "4":
              System.out.println();
         }
         socket.close();
-break;
+        break;
 
-case "5":
+        case "5":
         /* --------------------------- Audio --------------------------- */
         input = new Scanner(new File("stamps/audio.txt"));
         while (input.hasNextLine())
@@ -143,9 +144,9 @@ case "5":
         Media.audio(socket, hostAddress, serverPort, completeRequest);
         System.out.println();
         socket.close();
-break;
+        break;
 
-case "6":
+        case "6":
         /* --------------------------- Vehicle OBD UDP--------------------------- */
         input = new Scanner(new File("stamps/obd.txt"));
         while (input.hasNextLine())
@@ -156,9 +157,9 @@ case "6":
 
         Obd.udpTelemetry(socket, hostAddress, serverPort, requestCodeVehicle);
         socket.close();
-break;
+        break;
 
-case "7":
+        case "7":
         /* --------------------------- Ithakicopter UDP--------------------------- */
         socket = new DatagramSocket(48078);
         input = new Scanner(new File("stamps/copter.txt"));
@@ -179,9 +180,9 @@ case "7":
 
         }
         socket.close();
-break;
+        break;
 
-case "8":
+        case "8":
         /* --------------------------- Autopilot --------------------------- */
         // The reasons probably this fails is because we keep the stream inactive and server probably close the connection, getting broken pipe
         socket = new DatagramSocket(48078);
@@ -197,11 +198,11 @@ case "8":
         int higherBound = 190;
         Copter.autopilot(socket, hostAddress, serverPort, socketAuto, Math.min(200, Math.max(150, lowerBound)), Math.min(200, Math.max(150, higherBound)));
         socketAuto.close();
-break;
+        break;
 
 
 
-case "9":
+        case "9":
         /* --------------------------- HTTPS TCP--------------------------- */
         Socket httpsSocket = new Socket(hostAddress, 80);
         input = new Scanner(new File("stamps/https.txt"));
@@ -213,12 +214,12 @@ case "9":
 
         https(httpsSocket);
         httpsSocket.close();
-break;
+        break;
 
-case "10":
+        case "10":
         /* --------------------------- Ithakicopter TCP--------------------------- */
         // can we use 38098? If we open the website we see that this is the port opened
-        Socket socketCopter = new Socket(hostAddress, 38048);
+        //Socket socketCopter = new Socket(hostAddress, 38048);
         input = new Scanner(new File("stamps/copter_tcp.txt"));
         while (input.hasNextLine())
         {
@@ -227,14 +228,14 @@ case "10":
         Thread.sleep(1500); // pause a little bit to enjoy the view
 
         int target = 180;
-        for (int i = 0; i<10; i++) {
+        for (int i = 0; i<20; i++) {
         System.out.println(new String(Copter.tcpTelemetry(hostAddress, target)));
         }
 
-        socketCopter.close();
-break;
+        //socketCopter.close();
+        break;
 
-case "11":
+        case "11":
         /* --------------------------- Vehicle OBD TCP--------------------------- */
         Socket socketVehicle = new Socket(hostAddress, 29078);
         input = new Scanner(new File("stamps/obd_tcp.txt"));
@@ -248,9 +249,9 @@ case "11":
             Obd.tcpTelemetry(socketVehicle);
         }
         socketVehicle.close();
-break;
+        break;
 
-case "12":
+        case "12":
         Socket foo = new Socket(hostAddress, 38048);
         OutputStream out = foo.getOutputStream();
         InputStream in = foo.getInputStream();
@@ -267,9 +268,9 @@ case "12":
         }
         data = new String(bis.toByteArray(), StandardCharsets.US_ASCII);
         System.out.println(data);
-break;
+        break;
 
-case "13":
+        case "13":
             
         // Major difference between this code snippet and the above is the reposnse time! Actually it is all about null and ending stream!
         Socket foo1 = new Socket(hostAddress, 38048);
@@ -307,14 +308,14 @@ case "13":
         }
 
 
-break;
+        break;
 
-default:
+        default:
     System.out.println("Please provide a valid input. If you want to exit then press Control-C.\n");
     flag = 0;
  
-    } // end switch   
-} while(flag == 0);
+            } // end switch   
+        } while(flag == 0);
 
 
         /* --------------------------- Close UDP sockets --------------------------- */

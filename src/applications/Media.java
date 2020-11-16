@@ -14,8 +14,8 @@ import javax.sound.sampled.*;
 
 public class Media {
 
-    private static String pathFileImage = "/home/tkatz/repos/ece-networks2-assignment/media/image/sandbox/ithaki_image.jpg";
-    private static String pathFileSound = "/home/tkatz/repos/ece-networks2-assignment/media/music/sandbox/track.wav";
+    private static String pathFileImage = "/home/tkatz/repos/ece-networks2/media/image/sandbox/ithaki_image.jpg";
+    private static String pathFileSound = "/home/tkatz/repos/ece-networks2/media/music/sandbox/track.wav";
 
     public static void image(DatagramSocket socket, InetAddress hostAddress, int serverPort, String requestCode) throws IOException {
 
@@ -101,9 +101,8 @@ outerloop:
             // x.printStackTrace(); // 
             System.out.println("Image application error when writing the file:");
         }
-        finally {
-            fos.close(); // close the OutputStream
-        }
+
+        fos.close(); // close the OutputStream
 
         // what time is o'clock?
         System.out.println("Total amount of time to receive a frame: " + (timeAfter - timeBefore)/(float)1000 + " seconds");
