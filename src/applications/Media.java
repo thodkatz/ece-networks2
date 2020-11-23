@@ -135,7 +135,7 @@ outerloop:
         System.out.println("Requested: Encoding: " + encoding + ". Type: " + type + ". Number of packets: " + numAudioPackets);
 
         // TX
-        byte[] txbufferSound = requestCode.getBytes();
+        byte[] txbufferSound = ("L22" + requestCode).getBytes();
         DatagramPacket sendPacket = new DatagramPacket(txbufferSound, txbufferSound.length, hostAddress, serverPort);
         try {
             socket.send(sendPacket);

@@ -40,20 +40,23 @@ class UserApplication {
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
-        int serverPort = 38004;
-        int clientPort = 48004;
-        String requestCodeEcho = "E9323";
-        String requestCodeImage = "M6443UDP=1024";
-        String requestCodeSound = "A3556"; 
-        String requestCodeCopter = "Q8129"; 
-        String requestCodeVehicle = "V1436"; 
+        int serverPort = 38048;
+        int clientPort = 48048;
+        String requestCodeEcho = "E3458";
+        String requestCodeImage = "M7485UDP=1024";
+        String requestCodeSound = "A1182"; 
+        String requestCodeCopter = "Q2213"; 
+        String requestCodeVehicle = "V3140"; 
         
         DatagramSocket socket = new DatagramSocket(clientPort);       
+        File file = null;
+        FileWriter writer = null;
+        long timeBefore = 0;
 
 
         int flag =1; // control user input
         do {
-        System.out.println("\nPlease enter a number (1-11) that corresponds to the application you want to run. Available options are:\n1) Echo with delay\n2) Echo no delay\n3) Temperature\n4) Image\n5) Music\n6) Vehicle UDP\n7) Ithakicopter UDP\n8) Autopilot\n9) HTTPS TCP\n10) Ithakicopter TCP\n11) Vehicle TCP");
+        System.out.println("\nPlease enter a number (1-11). Available options are:\n1) Echo with delay\n2) Echo no delay\n3) Temperature\n4) Image\n5) Music\n6) Vehicle UDP\n7) Ithakicopter UDP\n8) Autopilot\n9) HTTPS TCP\n10) Ithakicopter TCP\n11) Vehicle TCP");
         String choiceApp = (new Scanner(System.in)).nextLine();
         //String choiceApp = "5";
 
@@ -71,10 +74,14 @@ class UserApplication {
         }
         Thread.sleep(1500); // pause a little bit to enjoy the view
 
-        for (int i = 0; i < 5; i++) {
-             Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
-             System.out.println();
+        timeBefore = System.currentTimeMillis();
+        file = new File("echo_delay2.txt");
+        writer = new FileWriter(file);
+        while ((System.currentTimeMillis() - timeBefore)/(float)1000 < 60*4){
+             writer.write(String.valueOf(Echo.execute(socket, hostAddress, serverPort, requestCodeEcho)) + "\n");
+             //System.out.println();
         }
+        writer.close();
         socket.close();
         break;
 
@@ -87,10 +94,14 @@ class UserApplication {
         Thread.sleep(1500); // pause a little bit to enjoy the view
 
         // no delay
-        for (int i = 0; i < 5; i++) {
-             Echo.execute(socket, hostAddress, serverPort, "E0000");
-             System.out.println();
+        timeBefore = System.currentTimeMillis();
+        file = new File("echo_no_delay2.txt");
+        writer = new FileWriter(file);
+        while ((System.currentTimeMillis() - timeBefore)/(float)1000 < 60*4){
+             writer.write(String.valueOf(Echo.execute(socket, hostAddress, serverPort, "E0000")) + "\n");
+             //System.out.println();
         }
+        writer.close();
         socket.close();
         break;
 
@@ -121,7 +132,9 @@ class UserApplication {
         }
         Thread.sleep(1500); // pause a little bit to enjoy the view
 
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i<4; i++) Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
+
+        for (int i = 0; i < 1; i++) {
              Media.image(socket, hostAddress, serverPort, requestCodeImage);
              System.out.println();
         }
@@ -137,7 +150,9 @@ class UserApplication {
         }
         Thread.sleep(1500);
 
-        String numAudioPackets = "200";
+        for (int i = 0; i<4; i++) Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
+
+        String numAudioPackets = "500";
         String[] type = {"F", "T"};
         String[] encoding = {"AQ", ""};
         String completeRequest = requestCodeSound + encoding[0] + type[0] + numAudioPackets;
@@ -175,6 +190,8 @@ class UserApplication {
         Thread.sleep(1000); // pause a bit to catch up with the user
         System.out.println("Press ENTER to exit");
         Thread.sleep(1000); 
+
+
         while (System.in.available() == 0) {
             Copter.udpTelemetry(socket, hostAddress, serverPort);
 
@@ -227,6 +244,8 @@ class UserApplication {
         }
         Thread.sleep(1500); // pause a little bit to enjoy the view
 
+        for (int i = 0; i<4; i++) Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
+
         int target = 180;
         for (int i = 0; i<20; i++) {
         System.out.println(new String(Copter.tcpTelemetry(hostAddress, target)));
@@ -237,13 +256,16 @@ class UserApplication {
 
         case "11":
         /* --------------------------- Vehicle OBD TCP--------------------------- */
-        Socket socketVehicle = new Socket(hostAddress, 29078);
         input = new Scanner(new File("stamps/obd_tcp.txt"));
         while (input.hasNextLine())
         {
             System.out.println(input.nextLine());
         }
         Thread.sleep(1500); // pause a little bit to enjoy the view
+
+        for (int i = 0; i<4; i++) Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
+
+        Socket socketVehicle = new Socket(hostAddress, 29078);
 
         for (int i = 0; i < 5; i++) {
             Obd.tcpTelemetry(socketVehicle);
