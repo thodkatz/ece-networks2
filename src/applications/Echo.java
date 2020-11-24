@@ -14,7 +14,7 @@ public class Echo {
      *
      * @param requestCode If request code is set to E000 then the execute will have no delay for the RX 
      */
-    public static float execute(DatagramSocket socket, InetAddress hostAddress, int serverPort, String requestCode) {
+    public static long execute(DatagramSocket socket, InetAddress hostAddress, int serverPort, String requestCode) {
         //System.out.println("\n--------------------Echo application--------------------");
 
         if (requestCode.equals("E0000")) System.out.println("Delay: OFF"); 
@@ -22,7 +22,7 @@ public class Echo {
         else System.out.println("Delay: OFF"); 
  
         byte[] txbuffer = requestCode.getBytes();
-        byte[] rxbuffer = new byte[128];
+        byte[] rxbuffer = new byte[64];
         long diff = 0;
         try {
             socket.setSoTimeout(3000);
@@ -39,7 +39,7 @@ public class Echo {
             socket.receive(receivePacket);
             long timeAfter = System.currentTimeMillis();
             diff = timeAfter - timeBefore;
-            System.out.println("The time required to reveive a packet is: " + diff + " seconds"); 
+            System.out.println("The time required to reveive a packet is: " + diff + " milliseconds"); 
             //System.out.println("The port that opened ithaki to send the request is : " + receivePacket.getPort() + " and the address of ithaki is: " + receivePacket.getAddress());
             String message = new String(receivePacket.getData(), StandardCharsets.US_ASCII); // convert binary to ASCI
             System.out.println("Ithaki responded with: " + message);
