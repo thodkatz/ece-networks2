@@ -1,5 +1,6 @@
 package applications;
-
+import java.io.File;
+import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -56,7 +57,7 @@ public class Obd {
 
     }
 
-    public static void tcpTelemetry(Socket socket) {
+    public static void tcpTelemetry(Socket socket, FileWriter writerVehicle) {
 
         try {                                                                                                                
             InputStream in = socket.getInputStream(); 
@@ -75,8 +76,11 @@ public class Obd {
                 System.out.println("Ithaki TCP time response: " + (System.currentTimeMillis()-timeBefore)/(float)1000 + " seconds");
                 
                 int[] values = parser(data);
-                formula(values[0], values[1], header[i]);
+                float value = formula(values[0], values[1], header[i]);
+                writerVehicle.write(value + " ");
             }
+
+            writerVehicle.write("\n");
         }
         catch (Exception x) {
             System.out.println(x);
@@ -85,32 +89,43 @@ public class Obd {
         }
     }
 
-    private static void formula(int first, int second, String header) {
+    private static float formula(int first, int second, String header) {
+        float value = 0;
         switch (header) {
             case "01 1F":
                 int engineRunTime = first*256 + second;
                 System.out.println("Engine run time: " + engineRunTime);
+                value = engineRunTime;
                 break;
+
             case "01 0F":
                 int intakeAirTemp = first - 40;
                 System.out.println("Intake Air Temperature: " + intakeAirTemp);
+                value = intakeAirTemp;
                 break;
 
             case "01 11":
                 float throttlePos = (first*100)/(float)255;
                 System.out.println("Throttle position: " + throttlePos);
+                value = throttlePos;
                 break;
+
             case "01 0C":
                 float engineRpm = ((first*256) + second)/(float)4;
                 System.out.println("Engine RPM: " + engineRpm);
+                value = engineRpm;
                 break;
+
             case "01 0D":
                 int speed = first;
                 System.out.println("Vehicle speed: " + speed);
+                value = speed;
                 break;
+
             case "01 05":
                 int coolantTemp = first -40;
                 System.out.println("Coolant Temperature: " + coolantTemp);
+                value = coolantTemp;
                 break;
 
             default:
@@ -118,6 +133,7 @@ public class Obd {
 
         } 
         System.out.println();
+        return value;
     }
 
     private static int[] parser(String data) {

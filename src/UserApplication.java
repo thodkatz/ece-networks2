@@ -41,10 +41,10 @@ class UserApplication {
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
-        int serverPort = 38010;
-        int clientPort = 48010;
-        String requestCodeEcho = "E7296";
-        String requestCodeImage = "M0815UDP=1024";
+        int serverPort = 38048;
+        int clientPort = 48048;
+        String requestCodeEcho = "E2431";
+        String requestCodeImage = "M7828UDP=1024";
         String requestCodeSound = "A9161"; 
         String requestCodeCopter = "Q6871"; 
         String requestCodeVehicle = "V5884"; 
@@ -73,35 +73,47 @@ class UserApplication {
         }
         Thread.sleep(1500); // pause a little bit to enjoy the view
 
-        File fileSamples = new File("logs/echo_delay_samples.txt");
-        FileWriter writerSamples = new FileWriter(fileSamples);
-        writerSamples.write("Info:\n" + "The request code is " + requestCodeEcho + "\n");
-        writerSamples.write(LocalDateTime.now() + "\n\n");
+        File info = new File("logs/echo_info_delay.txt");
+        FileWriter writerInfo = new FileWriter(info);
+        writerInfo.write("Info:\n" + "The request code is " + requestCodeEcho + "\n");
+        writerInfo.write("Tic: " + LocalDateTime.now() + "\n");
 
+        File fileSamples = new File("logs/echo_samples_delay.txt");
+        FileWriter writerSamples = new FileWriter(fileSamples);
+        
         File fileThroughput = new File("logs/echo_throughput_delay.txt");
         FileWriter writerThroughput = new FileWriter(fileThroughput);
+
+        File fileRto = new File("logs/rto.txt");
+        FileWriter writerRto = new FileWriter(fileRto);
 
         timeBefore = System.currentTimeMillis();
         long tic[] = new long[8];
         //long toc[] = new long[8];
         int cumsum[] = new int[8];  // cumulative sum
-        float throughput[] = new float[8];  
-        int count8sec[] = new int[8];
+        float throughput[] = new float[8];  // worst case we need 8 elements to store data 
+        int count8sec[] = new int[8]; // keep track how many 8 seconds have passed
         for(int i = 0; i<8; i++) {
-            tic[i] = timeBefore + i*1000;
+            tic[i] = timeBefore + i*1000; // move per second
         }
 
-        while ((System.currentTimeMillis() - timeBefore) < 60000 * 4){
-            long value = Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
-            writerSamples.write(String.valueOf(value) + "\n");
+        double rtts = 0;
+        double rttd = 0;
+        double rto = 0;
+        int isFirst = 1;
+
+        while ((System.currentTimeMillis() - timeBefore) < 60000 * 1){
+            long rtt = Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
+            writerSamples.write(rtt + "\n");
 
             // throughput moving average
+            
              for(int i = 0; i<8; i++) {
-                 System.out.println("The element " + i + " has tic: " + tic[i]);
+                 //System.out.println("The element " + i + " has tic: " + tic[i]);
                  long toc = System.currentTimeMillis() - tic[i];
                  System.out.println("The element " + i + " has toc: " + toc);
                  if (toc < 8000 && toc > 0) { 
-                     cumsum[i] += 32*8;
+                     cumsum[i] += 32*8; // assume no timeouts during the measurements
                      System.out.println("Cumsum: " + cumsum[i]);
                  }
                  else if(toc > 8000){
@@ -110,15 +122,45 @@ class UserApplication {
                      throughput[i] = cumsum[i]/(float)8;
                      System.out.println("I will flush " + cumsum[i] + " cumsum");
                      System.out.println("The throughput is: " + throughput[i]);
-                     writerThroughput.write(String.valueOf(throughput[i])+ "\n");
-                     cumsum[i] = 0; // let's start again
+
+                     writerThroughput.write(throughput[i]+ "\n");
+
+
+                     cumsum[i] = 0; // let's start again for the next 8 seconds
                  }
              } 
+
+
+             // Retransmission timeout
+             
+             // init values
+             if (isFirst == 1) { 
+                 rtts = rtt;
+                 rttd = rtt/2;
+                 rto = 1; // according to rfc
+                 writerRto.write("RTT SRTT RTTd RTO\n");
+             } 
+             double temp = rtts;
+             rtts = 0.875*temp + 0.125*rtt;   
+
+             temp = rttd;
+             rttd = 0.75*temp + 0.25*Math.abs(rtt - rtts);
+
+             temp = rto;
+             rto = rtts + 4*rttd;
+
+             writerRto.write(rtt + " " + rtts + " " + rttd + " " + rto + "\n");
+
+             System.out.println();
+             isFirst = 0;
         }
         
-        writerSamples.write(LocalDateTime.now() + "\n");
+        writerInfo.write("Toc: " + LocalDateTime.now());
+
+        writerInfo.close();
         writerSamples.close();
         writerThroughput.close();
+        writerRto.close();
         socket.close();
         break;
 
@@ -130,11 +172,13 @@ class UserApplication {
         }
         Thread.sleep(1500); // pause a little bit to enjoy the view
 
-        // no delay
-        fileSamples = new File("logs/echo_no_delay.txt");
+        info = new File("logs/echo_info_no_delay.txt");
+        writerInfo = new FileWriter(info);
+        writerInfo.write("Info:\n" + "The request code is " + requestCodeEcho + "\n");
+        writerInfo.write("Tic: " + LocalDateTime.now() + "\n");
+
+        fileSamples = new File("logs/echo_samples_no_delay.txt");
         writerSamples = new FileWriter(fileSamples);
-        writerSamples.write("Info:\n" + "The request code is " + requestCodeEcho + "\n");
-        writerSamples.write(LocalDateTime.now() + "\n\n");
 
         fileThroughput = new File("logs/echo_throughput_no_delay.txt");
         writerThroughput = new FileWriter(fileThroughput);
@@ -143,23 +187,24 @@ class UserApplication {
         tic = new long[8];
         //long toc[] = new long[8];
         cumsum = new int[8];  // cumulative sum
-        throughput = new float[8];  
+        throughput = new float[8];  // worst case we need 8 elements to store data 
         count8sec = new int[8];
         for(int i = 0; i<8; i++) {
-            tic[i] = timeBefore + i*1000;
+            tic[i] = timeBefore + i*1000; // move per second
         }
 
-        while ((System.currentTimeMillis() - timeBefore) < 60000 * 4){
-             writerSamples.write(String.valueOf(Echo.execute(socket, hostAddress, serverPort, "E0000")) + "\n");
-             //System.out.println();
+        while ((System.currentTimeMillis() - timeBefore) < 60000 * 1){
+            long value = Echo.execute(socket, hostAddress, serverPort, "E0000");
+            writerSamples.write(value + "\n");
 
              // throughput moving average
+             
              for(int i = 0; i<8; i++) {
                  //System.out.println("The element " + i + " has tic: " + tic[i]);
                  long toc = System.currentTimeMillis() - tic[i];
                  System.out.println("The element " + i + " has toc: " + toc);
                  if (toc < 8000 && toc > 0) { 
-                     cumsum[i] += 32*8;
+                     cumsum[i] += 32*8; // assume no timeouts during the measurements
                      System.out.println("Cumsum: " + cumsum[i]);
                  }
                  else if(toc > 8000){
@@ -168,13 +213,18 @@ class UserApplication {
                      throughput[i] = cumsum[i]/(float)8;
                      System.out.println("I will flush " + cumsum[i] + " cumsum");
                      System.out.println("The throughput is: " + throughput[i]);
-                     writerThroughput.write(String.valueOf(throughput[i])+ "\n");
-                     cumsum[i] = 0; // let's start again
+
+                     writerThroughput.write(throughput[i]+ "\n");
+
+                     cumsum[i] = 0; // let's start again for the next 8 seconds
                  }
              } 
+             System.out.println();
         }
 
-        writerSamples.write(LocalDateTime.now() + "\n");
+        writerInfo.write("Toc: " + LocalDateTime.now());
+
+        writerInfo.close();
         writerSamples.close();
         writerThroughput.close();
         socket.close();
@@ -191,10 +241,16 @@ class UserApplication {
         }
         Thread.sleep(1500); // pause a little bit to enjoy the view
 
-        for (int i = 0; i < 5; i++) {
+        FileWriter writerTemp = new FileWriter(new File("logs/temp_info.txt")) ;
+        writerTemp.write("Info Temperature app:\n" + LocalDateTime.now() + "\n");
+
+        for (int i = 0; i < 1; i++) {
              Echo.execute(socket, hostAddress, serverPort, requestCodeEcho + "T00");
              System.out.println();
         }
+
+        writerTemp.write(LocalDateTime.now() + "\n");
+        writerTemp.close();
         socket.close();
         break;
 
@@ -227,12 +283,22 @@ class UserApplication {
 
         for (int i = 0; i<4; i++) Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
 
+
         String numAudioPackets = "500";
         String[] type = {"F", "T"};
         String[] encoding = {"AQ", ""};
+        // assuming random choice of track
         String completeRequest = requestCodeSound + encoding[0] + type[0] + numAudioPackets;
+
+        File infoMusic = new File("logs/music_samples_" + encoding[0] + ".txt");
+        FileWriter writerInfoMusic = new FileWriter(infoMusic);
+        writerInfoMusic.write(LocalDateTime.now() + "\n");
+
         Media.audio(socket, hostAddress, serverPort, completeRequest);
         System.out.println();
+
+        writerInfoMusic.write(LocalDateTime.now() + "\n");
+        writerInfoMusic.close();
         socket.close();
         break;
 
@@ -266,11 +332,16 @@ class UserApplication {
         System.out.println("Press ENTER to exit");
         Thread.sleep(1000); 
 
+        FileWriter writerCopter = new FileWriter(new File("logs/copter_info.txt")) ;
+        writerCopter.write("Info Ithakicopter app:\n" + LocalDateTime.now() + "\n");
 
         while (System.in.available() == 0) {
             Copter.udpTelemetry(socket, hostAddress, serverPort);
 
         }
+
+        writerCopter.write(LocalDateTime.now() + "\n");
+        writerCopter.close();
         socket.close();
         break;
 
@@ -342,9 +413,18 @@ class UserApplication {
 
         Socket socketVehicle = new Socket(hostAddress, 29078);
 
-        for (int i = 0; i < 5; i++) {
-            Obd.tcpTelemetry(socketVehicle);
+        FileWriter writerVehicleInfo = new FileWriter(new File("logs/car_info.txt")) ;
+        writerVehicleInfo.write("Info Vehicle app:\n" + LocalDateTime.now() + "\n");
+        FileWriter writerVehicleData = new FileWriter(new File("logs/car_telemetry.txt"));
+
+        timeBefore = System.currentTimeMillis();
+        while ((System.currentTimeMillis() - timeBefore) < 60000 * 1){
+            Obd.tcpTelemetry(socketVehicle, writerVehicleData);
         }
+
+        writerVehicleInfo.write(LocalDateTime.now() + "\n");
+        writerVehicleInfo.close();
+        writerVehicleData.close();
         socketVehicle.close();
         break;
 

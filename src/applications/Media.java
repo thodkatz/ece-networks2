@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.awt.Desktop;
@@ -248,7 +249,21 @@ outerloop:
     private static byte[] dpcm(byte[] dataSound) {
         ByteArrayOutputStream bufferSound = new ByteArrayOutputStream();
         int init = 0;
-        int coeffDPCM = 2; // Trials: for 100 is pure noise, 4 good, 10 bad. I think below 4 you are good. In general it shouldn't 
+        int step = 1; // Trials: for 100 is pure noise, 4 good, 10 bad. I think below 4 you are good. In general it shouldn't 
+
+        File diffSamples = new File("logs/dpcm_diff_samples.txt") ;
+        File fileSamples = new File("logs/dpcm_samples.txt") ;
+        FileWriter writerDiffSamples = null; 
+        FileWriter writerSamples = null; 
+        try {
+            writerDiffSamples = new FileWriter(diffSamples);
+            writerSamples = new FileWriter(fileSamples);
+            }
+        catch (Exception x) {
+            System.out.println(x);
+            System.out.println("Failed to create a file writer for the DPCM");
+        }
+
         for (int i = 0; i<dataSound.length; i++) {
 
             String hexa = String.format("%02X", dataSound[i]); // print hexadecimal the content of the byte array
@@ -259,9 +274,13 @@ outerloop:
             int nibbleLow = dataSound[i] & maskLow; // D[i] = x[i] - x[i-1]
             int nibbleHigh = (dataSound[i] & maskHigh)>>4; // D[i-1] = x[i-1] - x[i-2]
 
+            // differences
+            int diffHigh = (nibbleHigh - 8)*step;
+            int diffLow = (nibbleLow - 8)*step;
+
             // get samples
-            int sampleFirst = init + (nibbleHigh - 8)*coeffDPCM;
-            int sampleSecond = sampleFirst + (nibbleLow - 8)*coeffDPCM;
+            int sampleFirst = init + diffHigh;
+            int sampleSecond = sampleFirst + diffLow;
             System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8) +", " + (nibbleLow-8) + " and samples: " + sampleFirst + ", " + sampleSecond);
             init = sampleSecond;
 
@@ -273,6 +292,16 @@ outerloop:
                 if (samples[j]>max8) samples[j] = max8;
                 else if (samples[j]<min8) samples[j] = min8;
             }               
+
+            // write data to files
+            try {
+                writerDiffSamples.write(diffHigh + "\n" + diffLow + "\n");
+                writerSamples.write(sampleFirst + "\n" + sampleSecond + "\n");
+            }
+            catch (Exception x) {
+                System.out.println(x);
+                System.out.println("Failed to write data to DPCM file");
+            }
 
             // write to buffer
             byte[] decodedSound = new byte[2];
@@ -287,11 +316,41 @@ outerloop:
                 System.out.println("Decoding DPCM failed");
             }
         }
-            return bufferSound.toByteArray(); 
+
+        try {
+        writerSamples.close();
+        writerDiffSamples.close();
+        }
+        catch (Exception x) {
+            System.out.println(x);
+            System.out.println("Failed to close files DPCM");
+        }
+
+        return bufferSound.toByteArray(); 
         
     }
 
     private static byte[] adpcm(byte[] dataSound) {
+
+        File diffSamples = new File("logs/aqdpcm_diff_samples.txt") ;
+        File fileSamples = new File("logs/aqdpcm_samples.txt") ;
+        File fileMean = new File("logs/aqdpcm_mean.txt");
+        File fileStep = new File("logs/aqdpcm_step.txt");
+
+        FileWriter writerDiffSamples = null; 
+        FileWriter writerSamples = null; 
+        FileWriter writerMean = null;
+        FileWriter writerStep = null;
+        try {
+            writerDiffSamples = new FileWriter(diffSamples);
+            writerSamples = new FileWriter(fileSamples);
+            writerMean = new FileWriter(fileMean);
+            writerStep = new FileWriter(fileStep);
+            }
+            catch (Exception x) {
+                System.out.println(x);
+                System.out.println("Failed to create a file writer for the AQ-DPCM");
+            }
 
         // get the header first
         int mean = (Byte.toUnsignedInt(dataSound[1])<<8 | Byte.toUnsignedInt(dataSound[0])); // be sure to not preserve the byte sign
@@ -307,6 +366,14 @@ outerloop:
         //System.out.print((short)(256*Byte.toUnsignedInt(dataSound[1]) + Byte.toUnsignedInt(dataSound[0])));
         //System.out.println(", "+ (short)((256*Byte.toUnsignedInt(dataSound[3]) + Byte.toUnsignedInt(dataSound[2]))));
 
+        try {
+            writerMean.write(meanSigned + "\n");
+            writerMean.write(step + "\n");
+        }
+        catch (Exception x) {
+            System.out.println(x);
+            System.out.println("Failed to write mean and step files for AQ-DPCM");
+        }
         ByteArrayOutputStream bufferSound = new ByteArrayOutputStream();
         int init = meanSigned; // in DPCM we don't know the init value, we assume zero. But here we have data in the header.
         for (int i = 3; i<dataSound.length; i++) {
@@ -319,9 +386,13 @@ outerloop:
             int nibbleLow = (dataSound[i] & maskLow); // D[i] = x[i] - x[i-1], should be unsigned
             int nibbleHigh = (dataSound[i] & maskHigh)>>4; // D[i-1] = x[i-1] - x[i-2], should be unsigned
 
+            // differences
+            int diffHigh = (nibbleHigh - 8)*step;
+            int diffLow = (nibbleLow - 8)*step;
+
             // get samples (implement recursive formula)
-            int sampleFirst = init + step*(nibbleHigh - 8);
-            int sampleSecond = sampleFirst + step*(nibbleLow - 8);
+            int sampleFirst = init + diffHigh;
+            int sampleSecond = sampleFirst + diffLow;
             System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8)*step +", " + (nibbleLow-8)*step + " and samples: " + sampleFirst + ", " + sampleSecond);
             init = sampleSecond;
 
@@ -334,6 +405,16 @@ outerloop:
                 else if (samples[j]<min16)  samples[j] = min16; 
             }
             System.out.print(". The actual samples due to 16-bit restriction are: " + samples[0] + " and " + samples[1] + " and in hex format: " + String.format("%02X", samples[0]) + ", " + String.format("%02X", samples[1]) + ". In short " + (short)samples[0] + ", " + (short)samples[1] + " and in hex format as a short: " + String.format("%02X", (short)samples[0]) + ", " + String.format("%02X", (short)samples[1]));
+
+            // write data to files
+            try {
+                writerDiffSamples.write(diffHigh + "\n" + diffLow + "\n");
+                writerSamples.write(sampleFirst + "\n" + sampleSecond + "\n");
+            }
+            catch (Exception x) {
+                System.out.println(x);
+                System.out.println("Failed to write data to AQ-DPCM file");
+            }
 
             // write to buffer
             byte[] decodedSound = new byte[4];
@@ -349,6 +430,17 @@ outerloop:
                 System.out.println(x);
                 System.out.println("Decoding DPCM failed");
             }
+        }
+
+        try {
+        writerSamples.close();
+        writerDiffSamples.close();
+        writerMean.close();
+        writerStep.close();
+        }
+        catch (Exception x) {
+            System.out.println(x);
+            System.out.println("Failed to close files DPCM");
         }
         return bufferSound.toByteArray();
     }
