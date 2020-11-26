@@ -1,0 +1,16 @@
+\contentsline {section}{\numberline {1}G1}{2}{section.1}%
+\contentsline {section}{\numberline {2}G2}{4}{section.2}%
+\contentsline {section}{\numberline {3}G3}{4}{section.3}%
+\contentsline {section}{\numberline {4}G4}{4}{section.4}%
+\contentsline {section}{\numberline {5}G5}{4}{section.5}%
+\contentsline {section}{\numberline {6}G6}{4}{section.6}%
+\contentsline {section}{\numberline {7}G7}{4}{section.7}%
+\contentsline {section}{\numberline {8}G8}{4}{section.8}%
+\contentsline {section}{\numberline {9}R1}{4}{section.9}%
+\contentsline {section}{\numberline {10}E1}{4}{section.10}%
+\contentsline {section}{\numberline {11}E2}{4}{section.11}%
+\contentsline {section}{\numberline {12}Temperature}{4}{section.12}%
+\contentsline {section}{\numberline {13}G9}{4}{section.13}%
+\contentsline {section}{\numberline {14}G10}{5}{section.14}%
+\contentsline {section}{\numberline {15}G15}{7}{section.15}%
+\contentsline {section}{\numberline {16}G16}{7}{section.16}%

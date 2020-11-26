@@ -41,13 +41,13 @@ class UserApplication {
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
-        int serverPort = 38048;
-        int clientPort = 48048;
-        String requestCodeEcho = "E2431";
-        String requestCodeImage = "M7828UDP=1024";
-        String requestCodeSound = "A9161"; 
-        String requestCodeCopter = "Q6871"; 
-        String requestCodeVehicle = "V5884"; 
+        int serverPort = 38004;
+        int clientPort = 48004;
+        String requestCodeEcho = "E4047";
+        String requestCodeImage = "M6495UDP=1024";
+        String requestCodeSound = "A1275"; 
+        String requestCodeCopter = "Q0952"; 
+        String requestCodeVehicle = "V2444"; 
         
         DatagramSocket socket = new DatagramSocket(clientPort);       
         long timeBefore = 0;
@@ -102,7 +102,7 @@ class UserApplication {
         double rto = 0;
         int isFirst = 1;
 
-        while ((System.currentTimeMillis() - timeBefore) < 60000 * 1){
+        while ((System.currentTimeMillis() - timeBefore) < 60000 * 4){
             long rtt = Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
             writerSamples.write(rtt + "\n");
 
@@ -147,7 +147,7 @@ class UserApplication {
              rttd = 0.75*temp + 0.25*Math.abs(rtt - rtts);
 
              temp = rto;
-             rto = rtts + 4*rttd;
+             rto = rtts + 1.8*rttd;
 
              writerRto.write(rtt + " " + rtts + " " + rttd + " " + rto + "\n");
 
@@ -193,7 +193,7 @@ class UserApplication {
             tic[i] = timeBefore + i*1000; // move per second
         }
 
-        while ((System.currentTimeMillis() - timeBefore) < 60000 * 1){
+        while ((System.currentTimeMillis() - timeBefore) < 60000 * 4){
             long value = Echo.execute(socket, hostAddress, serverPort, "E0000");
             writerSamples.write(value + "\n");
 
@@ -266,7 +266,7 @@ class UserApplication {
         for (int i = 0; i<4; i++) Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
 
         for (int i = 0; i < 1; i++) {
-             Media.image(socket, hostAddress, serverPort, requestCodeImage);
+             Media.image(socket, hostAddress, serverPort, requestCodeImage + "CAM=PTZ");
              System.out.println();
         }
         socket.close();
@@ -288,9 +288,9 @@ class UserApplication {
         String[] type = {"F", "T"};
         String[] encoding = {"AQ", ""};
         // assuming random choice of track
-        String completeRequest = requestCodeSound + encoding[0] + type[0] + numAudioPackets;
+        String completeRequest = requestCodeSound + encoding[1] + type[1] + numAudioPackets;
 
-        File infoMusic = new File("logs/music_samples_" + encoding[0] + ".txt");
+        File infoMusic = new File("logs/music_info_" + encoding[1] + type[1] + ".txt");
         FileWriter writerInfoMusic = new FileWriter(infoMusic);
         writerInfoMusic.write(LocalDateTime.now() + "\n");
 
@@ -334,9 +334,13 @@ class UserApplication {
 
         FileWriter writerCopter = new FileWriter(new File("logs/copter_info.txt")) ;
         writerCopter.write("Info Ithakicopter app:\n" + LocalDateTime.now() + "\n");
+        writerCopter.write("MOTOR ALTITUDE TEMPERATURE PRESSURE");
+
+
+        for (int i = 0; i<4; i++) Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
 
         while (System.in.available() == 0) {
-            Copter.udpTelemetry(socket, hostAddress, serverPort);
+            Copter.udpTelemetry(socket, hostAddress, serverPort, writerCopter);
 
         }
 
@@ -418,7 +422,7 @@ class UserApplication {
         FileWriter writerVehicleData = new FileWriter(new File("logs/car_telemetry.txt"));
 
         timeBefore = System.currentTimeMillis();
-        while ((System.currentTimeMillis() - timeBefore) < 60000 * 1){
+        while ((System.currentTimeMillis() - timeBefore) < 60000 * 4){
             Obd.tcpTelemetry(socketVehicle, writerVehicleData);
         }
 

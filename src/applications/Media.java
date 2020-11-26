@@ -155,6 +155,29 @@ outerloop:
         int packetsSize = 0;
         long timeBefore = System.currentTimeMillis();
         long timeBeforePerPacket = System.currentTimeMillis();
+
+
+        // create files
+        File diffSamples = new File("logs/" + encoding + type + "diff_samples.txt") ;
+        File fileSamples = new File("logs/" + encoding + type + "samples.txt") ;
+        File fileMean = new File("logs/aqdpcm_mean.txt");
+        File fileStep = new File("logs/aqdpcm_step.txt");  
+        FileWriter writerDiffSamples = null; 
+        FileWriter writerSamples = null; 
+        FileWriter writerMean = null;
+        FileWriter writerStep = null;
+        try {
+            writerDiffSamples = new FileWriter(diffSamples);
+            writerSamples = new FileWriter(fileSamples);
+            writerMean = new FileWriter(fileMean);
+            writerStep = new FileWriter(fileStep);   
+        }
+        catch (Exception x) {
+            System.out.println(x);
+            System.out.println("Failed to create a file writer for the DPCM");
+        }
+
+
         try {
             socket.setSoTimeout(3000);
             for (int l = 0; l < Integer.parseInt(numAudioPackets); l++) {
@@ -169,11 +192,13 @@ outerloop:
 
                 if (encoding.equals("")) {
                     // DPCM
-                    bufferSound.write(dpcm(dataSound));
+                    bufferSound.write(dpcm(dataSound, writerDiffSamples, writerSamples));
                 }
                 else if (encoding.equals("AQ")) {
                     // AQ-DPCM
-                    bufferSound.write(adpcm(dataSound));
+
+                    bufferSound.write(adpcm(dataSound, writerDiffSamples, writerSamples, writerMean,
+                                      writerStep));
                 }
                 else {
                     System.out.println("This is not a valid request code");
@@ -184,6 +209,18 @@ outerloop:
         catch (Exception x) {
             System.out.println(x);
             System.out.println("Receiving/writing the audio data failed");
+        }
+
+        // close files
+        try {
+            writerSamples.close();
+            writerDiffSamples.close();
+            writerMean.close();
+            writerStep.close();
+        }
+        catch (Exception x) {
+            System.out.println(x);
+            System.out.println("Failed to close audio files");
         }
 
         long timeAfter = System.currentTimeMillis();
@@ -246,23 +283,14 @@ outerloop:
         }
     }
 
-    private static byte[] dpcm(byte[] dataSound) {
+    private static byte[] dpcm(byte[] dataSound, FileWriter writerDiffSamples, 
+                               FileWriter writerSamples) {
+
         ByteArrayOutputStream bufferSound = new ByteArrayOutputStream();
         int init = 0;
         int step = 1; // Trials: for 100 is pure noise, 4 good, 10 bad. I think below 4 you are good. In general it shouldn't 
 
-        File diffSamples = new File("logs/dpcm_diff_samples.txt") ;
-        File fileSamples = new File("logs/dpcm_samples.txt") ;
-        FileWriter writerDiffSamples = null; 
-        FileWriter writerSamples = null; 
-        try {
-            writerDiffSamples = new FileWriter(diffSamples);
-            writerSamples = new FileWriter(fileSamples);
-            }
-        catch (Exception x) {
-            System.out.println(x);
-            System.out.println("Failed to create a file writer for the DPCM");
-        }
+
 
         for (int i = 0; i<dataSound.length; i++) {
 
@@ -296,7 +324,7 @@ outerloop:
             // write data to files
             try {
                 writerDiffSamples.write(diffHigh + "\n" + diffLow + "\n");
-                writerSamples.write(sampleFirst + "\n" + sampleSecond + "\n");
+                writerSamples.write(samples[0] + "\n" + samples[1] + "\n");
             }
             catch (Exception x) {
                 System.out.println(x);
@@ -317,40 +345,14 @@ outerloop:
             }
         }
 
-        try {
-        writerSamples.close();
-        writerDiffSamples.close();
-        }
-        catch (Exception x) {
-            System.out.println(x);
-            System.out.println("Failed to close files DPCM");
-        }
+
 
         return bufferSound.toByteArray(); 
         
     }
 
-    private static byte[] adpcm(byte[] dataSound) {
-
-        File diffSamples = new File("logs/aqdpcm_diff_samples.txt") ;
-        File fileSamples = new File("logs/aqdpcm_samples.txt") ;
-        File fileMean = new File("logs/aqdpcm_mean.txt");
-        File fileStep = new File("logs/aqdpcm_step.txt");
-
-        FileWriter writerDiffSamples = null; 
-        FileWriter writerSamples = null; 
-        FileWriter writerMean = null;
-        FileWriter writerStep = null;
-        try {
-            writerDiffSamples = new FileWriter(diffSamples);
-            writerSamples = new FileWriter(fileSamples);
-            writerMean = new FileWriter(fileMean);
-            writerStep = new FileWriter(fileStep);
-            }
-            catch (Exception x) {
-                System.out.println(x);
-                System.out.println("Failed to create a file writer for the AQ-DPCM");
-            }
+    private static byte[] adpcm(byte[] dataSound, FileWriter writerDiffSamples,
+                                FileWriter writerSamples, FileWriter writerMean, FileWriter writerStep) {
 
         // get the header first
         int mean = (Byte.toUnsignedInt(dataSound[1])<<8 | Byte.toUnsignedInt(dataSound[0])); // be sure to not preserve the byte sign
@@ -368,12 +370,13 @@ outerloop:
 
         try {
             writerMean.write(meanSigned + "\n");
-            writerMean.write(step + "\n");
+            writerStep.write(step + "\n");
         }
         catch (Exception x) {
             System.out.println(x);
             System.out.println("Failed to write mean and step files for AQ-DPCM");
         }
+
         ByteArrayOutputStream bufferSound = new ByteArrayOutputStream();
         int init = meanSigned; // in DPCM we don't know the init value, we assume zero. But here we have data in the header.
         for (int i = 3; i<dataSound.length; i++) {
@@ -409,7 +412,7 @@ outerloop:
             // write data to files
             try {
                 writerDiffSamples.write(diffHigh + "\n" + diffLow + "\n");
-                writerSamples.write(sampleFirst + "\n" + sampleSecond + "\n");
+                writerSamples.write(samples[0] + "\n" + samples[1] + "\n");
             }
             catch (Exception x) {
                 System.out.println(x);
@@ -432,16 +435,7 @@ outerloop:
             }
         }
 
-        try {
-        writerSamples.close();
-        writerDiffSamples.close();
-        writerMean.close();
-        writerStep.close();
-        }
-        catch (Exception x) {
-            System.out.println(x);
-            System.out.println("Failed to close files DPCM");
-        }
+
         return bufferSound.toByteArray();
     }
 }

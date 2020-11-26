@@ -1,5 +1,6 @@
 package applications;
 
+import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -13,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.io.ByteArrayOutputStream;
 
 public class Copter {
-    public static String udpTelemetry(DatagramSocket socket, InetAddress hostAddress, int serverPort) {
+    public static String udpTelemetry(DatagramSocket socket, InetAddress hostAddress, int serverPort, FileWriter writerCopter) {
         // TX
         // open ithakicopter.jar
 
@@ -30,6 +31,15 @@ public class Copter {
             telemetry = new String(rxbuffer, StandardCharsets.US_ASCII);
             //System.out.print("Time repsonse: " + (System.currentTimeMillis() - timeBefore)/(float)1000);
             System.out.println("Received data via UDP: " + telemetry);
+
+            String[] tokensMotor = telemetry.split("LMOTOR=");
+            String[] tokensAltitude = telemetry.split("ALTITUDE=");
+            String[] tokensTemp = telemetry.split("TEMPERATURE=");
+            String[] tokensPress = telemetry.split("PRESSURE=");
+            writerCopter.write(tokensMotor[1].substring(0, 3) + " ");
+            writerCopter.write(tokensAltitude[1].substring(0, 3) + " ");
+            writerCopter.write(tokensTemp[1].substring(1, 6) + " ");
+            writerCopter.write(tokensPress[1].substring(0, 7) + "\n");
         }
         catch (Exception x) {
             System.out.println(x);
@@ -104,7 +114,7 @@ public class Copter {
                 tcpTelemetry(hostAddress, target);
                 }
 
-                String telemetry = Copter.udpTelemetry(listen, hostAddress, serverPort);
+                String telemetry = Copter.udpTelemetry(listen, hostAddress, serverPort, null);
                 String[] tokens = telemetry.split("LMOTOR=");
                 motor = Integer.parseInt(tokens[1].substring(0,3)); // get motor values 
 
