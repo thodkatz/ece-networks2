@@ -25,12 +25,12 @@ import numpy as np
 #x = genfromtxt('../logs/AQFsamples.txt')
 #x = genfromtxt('../logs/Tsamples.txt')
 #x = genfromtxt('../logs/aqdpcm_step.txt')
-x = genfromtxt('../logs/second_clip/aqdpcm_step.txt')
+#x = genfromtxt('../logs/second_clip/aqdpcm_step.txt')
 #plt.subplot(2,1,1)
-plt.plot(x, 'm')
-plt.xlabel('Number of samples', fontsize=12)
-plt.ylabel('Step Values', fontsize=12)
-plt.grid(True)
+#plt.plot(x, 'm')
+#plt.xlabel('Number of samples', fontsize=12)
+#plt.ylabel('Step Values', fontsize=12)
+#plt.grid(True)
 
 # plt.subplot(2,1,2)
 # plt.xlabel('Number of packets', fontsize=12)
@@ -38,7 +38,7 @@ plt.grid(True)
 # plt.grid(True)
 # plt.plot(x)
 # plt.xlim(100, 200)
-plt.show()
+#plt.show()
 
 
 #Retransmission timeout plot
@@ -57,21 +57,21 @@ plt.show()
 # plt.show()
 
 # Copter
-# data = genfromtxt('../logs/session1/copter_info.txt', delimiter=' ')
-# rtt = data[1:,0]
-# srtt = data[1:,1]
-# rttd = data[1:,2]
-# rto = data[1:,3]
-# plt.plot(rtt, label = "MOTOR")
-# plt.plot(srtt, label = "ALTITUDE")
-# plt.plot(rttd, label = "TEMPERATURE")
-# plt.plot(rto, label = "PRESSURE")
-# plt.xlabel('Number of packets', fontsize=12, labelpad=10)
-# plt.ylabel("Data", fontsize=12, labelpad=10)
-# plt.legend()
-# plt.grid(True);
-# plt.yticks(np.arange(0, 1200, 25))
-# plt.show()
+data = genfromtxt('../logs/copter_info.txt', delimiter=' ')
+rtt = data[1:,0]
+srtt = data[1:,1]
+rttd = data[1:,2]
+rto = data[1:,3]
+plt.plot(rtt, label = "MOTOR")
+plt.plot(srtt, label = "ALTITUDE")
+plt.plot(rttd, label = "TEMPERATURE")
+plt.plot(rto, label = "PRESSURE")
+plt.xlabel('Number of packets', fontsize=12, labelpad=10)
+plt.ylabel("Data", fontsize=12, labelpad=10)
+plt.legend()
+plt.grid(True);
+plt.yticks(np.arange(0, 1200, 100))
+plt.show()
 
 #Vehicle
 #data = genfromtxt('../logs/session1/car_telemetry.txt', delimiter=' ')

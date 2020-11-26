@@ -36,16 +36,16 @@ public class Media {
         DatagramPacket receivePacket= new DatagramPacket(rxbufferImage, rxbufferImage.length);
 
         // TX
+        System.out.println("I am sleeping... Camera needs time to readjust");
         try {
             socket.send(sendPacket);	
+            Thread.sleep(5000); // sleep in order for the camera to readjust	
         }
         catch (Exception x) {
             // x.printStackTrace(); // a more detailed diagnostic call
             System.out.println(x);
             System.out.println("Image application TX failed");
         }
-        System.out.println("I am sleeping... Camera needs time to readjust");
-        //Thread.sleep(5000); // sleep in order for the camera to readjust	
 
         // RX
         ByteArrayOutputStream bufferImage = new ByteArrayOutputStream();

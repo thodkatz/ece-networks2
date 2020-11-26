@@ -41,10 +41,10 @@ class UserApplication {
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
-        int serverPort = 38034;
-        int clientPort = 48034;
-        String requestCodeEcho = "E4047";
-        String requestCodeImage = "M0822UDP=1024";
+        int serverPort = 38004;
+        int clientPort = 48004;
+        String requestCodeEcho = "E2076 ";
+        String requestCodeImage = "M5983UDP=1024";
         String requestCodeSound = "A6209"; 
         String requestCodeCopter = "Q0952"; 
         String requestCodeVehicle = "V2444"; 
@@ -265,9 +265,9 @@ class UserApplication {
 
         for (int i = 0; i<4; i++) Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
 
-        String encodingImage = "CAM=PTZ";
+        String encodingImage = "CAM=FIX";
         FileWriter writerImage = new FileWriter(new File("logs/image_info_" + encodingImage));
-        writerImage.write(encodingImage + "\n" + requestCodeEcho + "\n" + LocalDateTime.now() + "\n");
+        writerImage.write(encodingImage + "\n" + requestCodeImage + "\n" + LocalDateTime.now() + "\n");
         for (int i = 0; i < 1; i++) {
              Media.image(socket, hostAddress, serverPort, requestCodeImage + encodingImage);
              System.out.println();
