@@ -1,9 +1,9 @@
 # Fdb version 3
-["xdvipdfmx"] 1606350573 "session1.xdv" "session1.pdf" "session1" 1606350574
-  "session1.xdv" 1606350573 19468 202e55218794f001650691b5e176f6cc "xelatex"
+["xdvipdfmx"] 1606395703 "session1.xdv" "session1.pdf" "session1" 1606395705
+  "session1.xdv" 1606395703 31596 bd7fffb96f3248332e034e6caa9f1eb3 "xelatex"
   (generated)
   "session1.pdf"
-["xelatex"] 1606350572 "session1.tex" "session1.xdv" "session1" 1606350574
+["xelatex"] 1606395702 "session1.tex" "session1.xdv" "session1" 1606395705
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1591545468 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1591545468 1528 f853c4d1b4e0550255e02831fdc8496f ""
   "/usr/share/texmf-dist/tex/generic/atbegshi/atbegshi.sty" 1591545468 24708 5584a51a7101caf7e6bbf1fc27d8f7b1 ""
@@ -65,21 +65,26 @@
   "assets/auth.pdf" 1606072528 73015 9d54bd62a06b402c4ffddd458d758179 ""
   "assets/session1/g1.png" 1606338710 97458 3f4a3c744b5cd0ffb8577270d7381a18 ""
   "assets/session1/g10.png" 1606349758 43948 67cab5d0b6e074bd1d5d3c4a51547107 ""
+  "assets/session1/g15.png" 1606351883 108119 f1136a9baf996fde5fd099a8adcde6f5 ""
+  "assets/session1/g16.png" 1606351981 98305 7ea5d4009cbf50d9accf8f50c9b38c43 ""
+  "assets/session1/g17.png" 1606395105 130192 d60715505b0e5021abd132501ca239da ""
+  "assets/session1/g18.png" 1606395168 122829 02980cdf563e41f5fe30f7963bb1f7cc ""
+  "assets/session1/g19.png" 1606392989 70967 b26c184706b51e1b75b8550822b2bd7f ""
   "assets/session1/g2.png" 1606339334 61687 56ffec1389176613702da90a93f2b59d ""
+  "assets/session1/g21.png" 1606393843 116909 eef7126b7936ba085b248d2d72e3feba ""
   "assets/session1/g3.png" 1606341020 117269 a282a8c3b3a1ea2b5234de8be9fc05ef ""
   "assets/session1/g4.png" 1606341088 73169 7952b227abec5eeabb6857830a403dbf ""
   "assets/session1/g9_aq.png" 1606349334 52950 72666c4478128f66553b5ea40536f8b9 ""
   "assets/session1/image_fix.jpg" 1606341722 72963 4e493978e24b5b21e897d40abb8d8aa3 ""
-  "assets/session1/image_ptz.jpg" 1606342201 41319 65debd67493febbfcd0ed1409b812f58 ""
   "assets/session1/r1.png" 1606348516 145447 91aab3b89ce220102cbc4d2f256d2ab9 ""
-  "session1.aux" 1606350573 3655 3e8743d8355946a1acb74eb360970d74 "xelatex"
-  "session1.out" 1606350573 618 5b4d05a5fdecbf04d3a2e4ed819476b0 "xelatex"
-  "session1.tex" 1606350571 2868 d9998da18fe0b6d38a5e588034b98f8a ""
-  "session1.toc" 1606350573 954 6793aa2d71f52d9e9761c900298aadda "xelatex"
+  "session1.aux" 1606395703 5465 9585d88c2f719ea8b039441da7f65397 "xelatex"
+  "session1.out" 1606395703 978 872983af87d70785e92af8affefe4bde "xelatex"
+  "session1.tex" 1606395701 4306 8ce3a79af51cef3d0caeab816112185d ""
+  "session1.toc" 1606395703 1503 67f86ec06fce82a7f6c942cceb259218 "xelatex"
   "titlepage.tex" 1606084872 775 247ec248e4202c20d69cf4af99df99f1 ""
   (generated)
-  "session1.aux"
-  "session1.toc"
   "session1.xdv"
+  "session1.aux"
   "session1.out"
   "session1.log"
+  "session1.toc"

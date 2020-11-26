@@ -41,11 +41,11 @@ class UserApplication {
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
-        int serverPort = 38004;
-        int clientPort = 48004;
+        int serverPort = 38034;
+        int clientPort = 48034;
         String requestCodeEcho = "E4047";
-        String requestCodeImage = "M6495UDP=1024";
-        String requestCodeSound = "A1275"; 
+        String requestCodeImage = "M0822UDP=1024";
+        String requestCodeSound = "A6209"; 
         String requestCodeCopter = "Q0952"; 
         String requestCodeVehicle = "V2444"; 
         
@@ -265,10 +265,15 @@ class UserApplication {
 
         for (int i = 0; i<4; i++) Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
 
+        String encodingImage = "CAM=PTZ";
+        FileWriter writerImage = new FileWriter(new File("logs/image_info_" + encodingImage));
+        writerImage.write(encodingImage + "\n" + requestCodeEcho + "\n" + LocalDateTime.now() + "\n");
         for (int i = 0; i < 1; i++) {
-             Media.image(socket, hostAddress, serverPort, requestCodeImage + "CAM=PTZ");
+             Media.image(socket, hostAddress, serverPort, requestCodeImage + encodingImage);
              System.out.println();
         }
+        writerImage.write(LocalDateTime.now() + "\n");
+        writerImage.close();
         socket.close();
         break;
 
@@ -288,9 +293,9 @@ class UserApplication {
         String[] type = {"F", "T"};
         String[] encoding = {"AQ", ""};
         // assuming random choice of track
-        String completeRequest = requestCodeSound + encoding[1] + type[1] + numAudioPackets;
+        String completeRequest = requestCodeSound + encoding[0] + type[0] + numAudioPackets;
 
-        File infoMusic = new File("logs/music_info_" + encoding[1] + type[1] + ".txt");
+        File infoMusic = new File("logs/music_info_" + encoding[0] + type[0] + ".txt");
         FileWriter writerInfoMusic = new FileWriter(infoMusic);
         writerInfoMusic.write(LocalDateTime.now() + "\n");
 

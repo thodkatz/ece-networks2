@@ -136,11 +136,14 @@ INPUT assets/session1/g3.png
 INPUT assets/session1/g4.png
 INPUT assets/session1/r1.png
 INPUT assets/session1/image_fix.jpg
-INPUT assets/session1/image_ptz.jpg
 INPUT assets/session1/g9_aq.png
 INPUT assets/session1/g10.png
-INPUT assets/session1/g10.png
-INPUT assets/session1/g10.png
+INPUT assets/session1/g15.png
+INPUT assets/session1/g16.png
+INPUT assets/session1/g17.png
+INPUT assets/session1/g18.png
+INPUT assets/session1/g19.png
+INPUT assets/session1/g21.png
 INPUT session1.aux
 INPUT ./session1.out
 INPUT ./session1.out

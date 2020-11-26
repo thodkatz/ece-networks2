@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.999992 (TeX Live 2020/Arch Linux) (preloaded format=xelatex 2020.11.16)  26 NOV 2020 02:29
+This is XeTeX, Version 3.14159265-2.6-0.999992 (TeX Live 2020/Arch Linux) (preloaded format=xelatex 2020.11.16)  26 NOV 2020 15:01
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -412,8 +412,6 @@ File: assets/session1/image_fix.jpg Graphic file (type bmp)
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-File: assets/session1/image_ptz.jpg Graphic file (type bmp)
-<assets/session1/image_ptz.jpg>
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
@@ -422,45 +420,69 @@ File: assets/session1/g9_aq.png Graphic file (type bmp)
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
+File: assets/session1/g10.png Graphic file (type bmp)
+<assets/session1/g10.png>
 
-Overfull \vbox (32.26144pt too high) has occurred while \output is active []
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+
+Overfull \vbox (99.94223pt too high) has occurred while \output is active []
 
  [4]
-File: assets/session1/g10.png Graphic file (type bmp)
-<assets/session1/g10.png>
+
+LaTeX Warning: Text page 5 contains only floats.
+
+[5] [6]
+File: assets/session1/g15.png Graphic file (type bmp)
+<assets/session1/g15.png>
+File: assets/session1/g16.png Graphic file (type bmp)
+<assets/session1/g16.png>
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-File: assets/session1/g10.png Graphic file (type bmp)
-<assets/session1/g10.png>
-[5]
+File: assets/session1/g17.png Graphic file (type bmp)
+<assets/session1/g17.png>
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-File: assets/session1/g10.png Graphic file (type bmp)
-<assets/session1/g10.png>
-[6]
+File: assets/session1/g18.png Graphic file (type bmp)
+<assets/session1/g18.png>
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 140.
+File: assets/session1/g19.png Graphic file (type bmp)
+<assets/session1/g19.png>
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+File: assets/session1/g21.png Graphic file (type bmp)
+<assets/session1/g21.png>
 [7] [8]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 140.
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+
+Overfull \vbox (10.31732pt too high) has occurred while \output is active []
+
+ [9]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 204.
+ [10]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 204.
  (./session1.aux)
-Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 140.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 140.
+Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 204.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 204.
 Package rerunfilecheck Info: File `session1.out' has not changed.
-(rerunfilecheck)             Checksum: 5B4D05A5FDECBF04D3A2E4ED819476B0;618.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 140.
+(rerunfilecheck)             Checksum: 872983AF87D70785E92AF8AFFEFE4BDE;978.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 204.
  ) 
 Here is how much of TeX's memory you used:
- 11532 strings out of 479284
- 227015 string characters out of 5886219
- 703861 words of memory out of 5000000
- 29041 multiletter control sequences out of 15000+600000
+ 11562 strings out of 479284
+ 227649 string characters out of 5886219
+ 704861 words of memory out of 5000000
+ 29066 multiletter control sequences out of 15000+600000
  533241 words of font info for 43 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  44i,6n,82p,276b,374s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on session1.xdv (9 pages, 19468 bytes).
+Output written on session1.xdv (11 pages, 31596 bytes).
