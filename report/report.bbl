@@ -1,0 +1,22 @@
+\begin{thebibliography}{1}
+
+\bibitem{gfg_rto}
+{Geeks for Geeks TCP timers}.
+\newblock \url{https://www.geeksforgeeks.org/tcp-timers/}.
+
+\bibitem{saminir}
+{Let's code a TCP-IP stack, Retransmission}.
+\newblock
+  \url{https://www.saminiir.com/lets-code-tcp-ip-stack-5-tcp-retransmission/}.
+
+\bibitem{rfc}
+{RFC: Computing TCP's Retransmission Timer}.
+\newblock \url{https://tools.ietf.org/html/rfc6298}.
+
+\bibitem{ergasia2}
+{Εκφώνηση της εργασίας Java socket programming του
+  μαθήματος Δίκτυα Υπολογιστών ΙΙ}.
+\newblock
+  \url{https://drive.google.com/file/d/1vvmSKQx-HK5xv2gjL99AdWLdrV78Btxb/view?usp=sharing}.
+
+\end{thebibliography}
