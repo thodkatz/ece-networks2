@@ -136,7 +136,7 @@ outerloop:
         System.out.println("Requested: Encoding: " + encoding + ". Type: " + type + ". Number of packets: " + numAudioPackets);
 
         // TX
-        byte[] txbufferSound = ("L11" + requestCode).getBytes();
+        byte[] txbufferSound = ("L02" + requestCode).getBytes();
         DatagramPacket sendPacket = new DatagramPacket(txbufferSound, txbufferSound.length, hostAddress, serverPort);
         try {
             socket.send(sendPacket);
@@ -335,7 +335,7 @@ outerloop:
             byte[] decodedSound = new byte[2];
             decodedSound[0] = (byte)sampleFirst;
             decodedSound[1] = (byte)sampleSecond;
-            System.out.println(". Output: " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]));
+            //System.out.println(". Output: " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]));
             try {
                 bufferSound.write(decodedSound);
             }
@@ -425,7 +425,7 @@ outerloop:
             decodedSound[1] = (byte)samples[0]; // LSB of sample 7-0
             decodedSound[2] = (byte)(samples[1]>>8);
             decodedSound[3] = (byte)samples[1];
-            System.out.println(". Output: First sample " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]) + " second sample: " + String.format("%02X", decodedSound[2]) + String.format("%02X", decodedSound[3]));
+            //System.out.println(". Output: First sample " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]) + " second sample: " + String.format("%02X", decodedSound[2]) + String.format("%02X", decodedSound[3]));
             try {
                 bufferSound.write(decodedSound);
             }

@@ -1,0 +1,26 @@
+\contentsline {section}{\numberline {1}G1}{2}{section.1}%
+\contentsline {section}{\numberline {2}G2}{2}{section.2}%
+\contentsline {section}{\numberline {3}G3}{2}{section.3}%
+\contentsline {section}{\numberline {4}G4}{2}{section.4}%
+\contentsline {section}{\numberline {5}G5}{2}{section.5}%
+\contentsline {section}{\numberline {6}G6}{2}{section.6}%
+\contentsline {section}{\numberline {7}G7}{2}{section.7}%
+\contentsline {section}{\numberline {8}G8}{2}{section.8}%
+\contentsline {section}{\numberline {9}R1}{2}{section.9}%
+\contentsline {section}{\numberline {10}Tone frequency}{3}{section.10}%
+\contentsline {section}{\numberline {11}E1}{3}{section.11}%
+\contentsline {section}{\numberline {12}E2}{4}{section.12}%
+\contentsline {section}{\numberline {13}Temperature}{4}{section.13}%
+\contentsline {section}{\numberline {14}G9}{4}{section.14}%
+\contentsline {section}{\numberline {15}G10}{4}{section.15}%
+\contentsline {section}{\numberline {16}G11}{5}{section.16}%
+\contentsline {section}{\numberline {17}G12}{6}{section.17}%
+\contentsline {section}{\numberline {18}G13}{6}{section.18}%
+\contentsline {section}{\numberline {19}G14}{7}{section.19}%
+\contentsline {section}{\numberline {20}G15}{7}{section.20}%
+\contentsline {section}{\numberline {21}G16}{8}{section.21}%
+\contentsline {section}{\numberline {22}G17}{8}{section.22}%
+\contentsline {section}{\numberline {23}G18}{8}{section.23}%
+\contentsline {section}{\numberline {24}G19}{8}{section.24}%
+\contentsline {section}{\numberline {25}G20}{8}{section.25}%
+\contentsline {section}{\numberline {26}G21}{8}{section.26}%

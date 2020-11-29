@@ -41,13 +41,13 @@ class UserApplication {
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
-        int serverPort = 38004;
-        int clientPort = 48004;
-        String requestCodeEcho = "E2076 ";
-        String requestCodeImage = "M5983UDP=1024";
-        String requestCodeSound = "A6209"; 
-        String requestCodeCopter = "Q0952"; 
-        String requestCodeVehicle = "V2444"; 
+        int serverPort = 38007;
+        int clientPort = 48007;
+        String requestCodeEcho = "E0818 ";
+        String requestCodeImage = "M2685UDP=1024";
+        String requestCodeSound = "A1631"; 
+        String requestCodeCopter = "Q2797"; 
+        String requestCodeVehicle = "V4118"; 
         
         DatagramSocket socket = new DatagramSocket(clientPort);       
         long timeBefore = 0;
@@ -242,7 +242,7 @@ class UserApplication {
         Thread.sleep(1500); // pause a little bit to enjoy the view
 
         FileWriter writerTemp = new FileWriter(new File("logs/temp_info.txt")) ;
-        writerTemp.write("Info Temperature app:\n" + LocalDateTime.now() + "\n");
+        writerTemp.write("Info Temperature app:\n" + requestCodeEcho + "\n" + LocalDateTime.now() + "\n");
 
         for (int i = 0; i < 1; i++) {
              Echo.execute(socket, hostAddress, serverPort, requestCodeEcho + "T00");
@@ -263,9 +263,9 @@ class UserApplication {
         }
         Thread.sleep(1500); // pause a little bit to enjoy the view
 
-        for (int i = 0; i<4; i++) Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
+        //for (int i = 0; i<4; i++) Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
 
-        String encodingImage = "CAM=FIX";
+        String encodingImage = "CAM=PTZDIR=R";
         FileWriter writerImage = new FileWriter(new File("logs/image_info_" + encodingImage));
         writerImage.write(encodingImage + "\n" + requestCodeImage + "\n" + LocalDateTime.now() + "\n");
         for (int i = 0; i < 1; i++) {
@@ -297,7 +297,7 @@ class UserApplication {
 
         File infoMusic = new File("logs/music_info_" + encoding[0] + type[0] + ".txt");
         FileWriter writerInfoMusic = new FileWriter(infoMusic);
-        writerInfoMusic.write(LocalDateTime.now() + "\n");
+        writerInfoMusic.write(requestCodeSound + "\nEncoding: " + encoding[0] + "\nType: " + type[0] + LocalDateTime.now() + "\n");
 
         Media.audio(socket, hostAddress, serverPort, completeRequest);
         System.out.println();
