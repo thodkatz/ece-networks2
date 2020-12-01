@@ -1,0 +1,81 @@
+% !TEX program = xelatex
+
+\documentclass[hidelinks, 12pt, a4paper]{article}
+
+\usepackage{fontspec}
+\setmainfont[Ligatures=TeX]{Linux Libertine O}
+
+\usepackage[hidelinks, colorlinks = true, urlcolor = blue]{hyperref}
+
+\usepackage[utf8]{inputenc}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{lipsum}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{verbatim}
+
+
+\begin{document}
+\sloppy % this is legendary
+
+\input{titlepage}
+%\maketitle
+
+
+\pagebreak
+\tableofcontents
+\pagebreak
+
+
+\section{Δομή του προγράμματος}
+
+\vspace{1cm}
+
+\begin{verbatim}
+├── applications
+│   ├── Copter.java
+│   ├── Echo.java
+│   ├── Media.java
+│   └── Obd.java
+├── plots
+│   └── plot.py
+├── stamps
+│   ├── audio.txt
+│   ├── auto.txt
+│   ├── copter_tcp.txt
+│   ├── copter.txt
+│   ├── echo.txt
+│   ├── https.txt
+│   ├── image.txt
+│   ├── obd_tcp.txt
+│   ├── obd.txt
+│   ├── temp.txt
+│   ├── test.txt
+│   └── welcome.txt
+└── UserApplication.java
+\end{verbatim}
+
+
+\begin{itemize}
+    \item Το αρχείο που βρίσκεται η main είναι το \emph{UserApplication.java}.
+    \item Στον φάκελο \emph{applications}, δημιουργήσαμε ξεχωριστά αρχεία για κάθε εφαρμογή.
+    \item Στον φάκελο \emph{stamps}, βρίσκονται οι έξοδοι του προγράμματος figlet για ascii art λόγους, όπως έχει αναφερθεί και στο report!
+    \item Στον φάκελο \emph{plots}, έχουμε τέλος ένα python αρχείο για να δημιουργήσουμε τα διαγράμματα μας.
+\end{itemize}
+
+Στη συνέχεια θα επικολλήσουμε μόνο τον κώδικα των \emph{applications} και του \emph{UserApplication.java}...
+
+\pagebreak
+
+\section{UserApplication.java}
+
+\section{applications}
+
+\subsection{Echo.java}
+\subsection{Media.java}
+\subsection{Obd.java}
+\subsection{Copter.java}
+
+\end{document}
