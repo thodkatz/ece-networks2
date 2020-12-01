@@ -19,4 +19,4 @@ router: router.tex
 .PHONY: clean
 
 clean: 
-	rm *.log *.aux *.xdv *.fls *.fdb_latexmk *.out *.toc *.gz
+	rm *.log *.aux *.xdv *.fls *.fdb_latexmk *.out *.toc *.gz *.bbl *.blg
