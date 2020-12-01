@@ -1,3 +1,3 @@
 ## Welcome screen
 
-![login](docs/login.png)
+![login](docs/ui.png)
