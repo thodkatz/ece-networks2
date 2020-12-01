@@ -57,7 +57,9 @@ public class Obd {
 
     }
 
-    public static void tcpTelemetry(Socket socket, FileWriter writerVehicle) {
+    public static float tcpTelemetry(Socket socket, FileWriter writerVehicle) {
+
+        float engineTime = 0;
 
         try {                                                                                                                
             InputStream in = socket.getInputStream(); 
@@ -78,6 +80,7 @@ public class Obd {
                 int[] values = parser(data);
                 float value = formula(values[0], values[1], header[i]);
                 writerVehicle.write(value + " ");
+                if (header[i] == "01 1F") engineTime = value;
             }
 
             writerVehicle.write("\n");
@@ -87,6 +90,8 @@ public class Obd {
             System.out.println("Oops... Vehicle OBD TCP failed");
 
         }
+
+        return engineTime; 
     }
 
     private static float formula(int first, int second, String header) {

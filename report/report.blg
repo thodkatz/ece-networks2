@@ -7,45 +7,57 @@ Warning--to sort, need author or key in ergasia2
 Warning--to sort, need author or key in gfg_rto
 Warning--to sort, need author or key in saminir
 Warning--to sort, need author or key in rfc
-You've used 4 entries,
+Warning--to sort, need author or key in derek
+Warning--to sort, need author or key in romaniancoder
+Warning--to sort, need author or key in oracle
+Warning--to sort, need author or key in javafile
+Warning--to sort, need author or key in programizhex
+Warning--to sort, need author or key in oraclesound
+Warning--to sort, need author or key in stackendian
+Warning--to sort, need author or key in stackaudiofile
+Warning--to sort, need author or key in tutorpoints
+Warning--to sort, need author or key in mediumtcp
+Warning--to sort, need author or key in codejava
+Warning--to sort, need author or key in stackparsestring
+You've used 16 entries,
             2118 wiz_defined-function locations,
-            509 strings with 4519 characters,
-and the built_in function-call counts, 656 in all, are:
-= -- 60
-> -- 4
+            545 strings with 6196 characters,
+and the built_in function-call counts, 2566 in all, are:
+= -- 240
+> -- 16
 < -- 0
-+ -- 4
++ -- 16
 - -- 0
-* -- 22
-:= -- 77
-add.period$ -- 8
-call.type$ -- 4
-change.case$ -- 12
+* -- 82
+:= -- 283
+add.period$ -- 32
+call.type$ -- 16
+change.case$ -- 48
 chr.to.int$ -- 0
-cite$ -- 8
-duplicate$ -- 28
-empty$ -- 93
+cite$ -- 32
+duplicate$ -- 112
+empty$ -- 369
 format.name$ -- 0
-if$ -- 161
+if$ -- 641
 int.to.chr$ -- 0
-int.to.str$ -- 4
+int.to.str$ -- 16
 missing$ -- 0
-newline$ -- 19
+newline$ -- 67
 num.names$ -- 0
-pop$ -- 32
+pop$ -- 128
 preamble$ -- 1
-purify$ -- 8
+purify$ -- 32
 quote$ -- 0
-skip$ -- 32
+skip$ -- 127
 stack$ -- 0
-substring$ -- 20
-swap$ -- 4
+substring$ -- 80
+swap$ -- 16
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 16
-warning$ -- 4
+type$ -- 64
+warning$ -- 16
 while$ -- 0
-width$ -- 5
-write$ -- 30
-(There were 4 warnings)
+width$ -- 18
+write$ -- 114
+(There were 16 warnings)

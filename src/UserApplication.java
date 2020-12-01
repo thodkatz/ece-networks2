@@ -41,8 +41,8 @@ class UserApplication {
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
-        int serverPort = 38007;
-        int clientPort = 48007;
+        int serverPort = 38002;
+        int clientPort = 48002;
         String requestCodeEcho = "E0818 ";
         String requestCodeImage = "M2685UDP=1024";
         String requestCodeSound = "A1631"; 
@@ -146,7 +146,6 @@ class UserApplication {
              temp = rttd;
              rttd = 0.75*temp + 0.25*Math.abs(rtt - rtts);
 
-             temp = rto;
              rto = rtts + 1.8*rttd;
 
              writerRto.write(rtt + " " + rtts + " " + rttd + " " + rto + "\n");
@@ -427,8 +426,10 @@ class UserApplication {
         FileWriter writerVehicleData = new FileWriter(new File("logs/car_telemetry.txt"));
 
         timeBefore = System.currentTimeMillis();
-        while ((System.currentTimeMillis() - timeBefore) < 60000 * 4){
-            Obd.tcpTelemetry(socketVehicle, writerVehicleData);
+        float engineTime = 0;
+        while ( engineTime < 60 * 4){
+            engineTime = Obd.tcpTelemetry(socketVehicle, writerVehicleData);
+            System.out.println("The engine run time is " + engineTime + "\n");
         }
 
         writerVehicleInfo.write(LocalDateTime.now() + "\n");
