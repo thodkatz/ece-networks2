@@ -381,7 +381,7 @@ outerloop:
         int init = meanSigned; // in DPCM we don't know the init value, we assume zero. But here we have data in the header.
         for (int i = 3; i<dataSound.length; i++) {
             // the sample may be bigger than byte. So you will need 16 bit encoding and store each int to 2 bytes.
-            System.out.print("Input: " + String.format("%02X", dataSound[i]) + ", "); // print hexadecimal the content of the byte array                       
+            //System.out.print("Input: " + String.format("%02X", dataSound[i]) + ", "); // print hexadecimal the content of the byte array                       
 
             // get nibbles                                                            
             int maskLow = 0x0F;

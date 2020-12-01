@@ -41,11 +41,11 @@ class UserApplication {
         byte[] hostIP = { (byte)155, (byte)207,  (byte)18, (byte)208};
         InetAddress clientAddress = InetAddress.getByAddress(clientIP);
         InetAddress hostAddress = InetAddress.getByAddress(hostIP);
-        int serverPort = 38002;
-        int clientPort = 48002;
+        int serverPort = 38022;
+        int clientPort = 48022;
         String requestCodeEcho = "E0818 ";
         String requestCodeImage = "M2685UDP=1024";
-        String requestCodeSound = "A1631"; 
+        String requestCodeSound = "A7269"; 
         String requestCodeCopter = "Q2797"; 
         String requestCodeVehicle = "V4118"; 
         
@@ -285,18 +285,18 @@ class UserApplication {
         }
         Thread.sleep(1500);
 
-        for (int i = 0; i<4; i++) Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
+        //for (int i = 0; i<4; i++) Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
 
 
-        String numAudioPackets = "500";
+        String numAudioPackets = "999";
         String[] type = {"F", "T"};
         String[] encoding = {"AQ", ""};
         // assuming random choice of track
         String completeRequest = requestCodeSound + encoding[0] + type[0] + numAudioPackets;
 
-        File infoMusic = new File("logs/music_info_" + encoding[0] + type[0] + ".txt");
+        File infoMusic = new File("logs/music_info_" + encoding[1] + type[0] + ".txt");
         FileWriter writerInfoMusic = new FileWriter(infoMusic);
-        writerInfoMusic.write(requestCodeSound + "\nEncoding: " + encoding[0] + "\nType: " + type[0] + LocalDateTime.now() + "\n");
+        writerInfoMusic.write(requestCodeSound + "\nEncoding: " + encoding[1] + "\nType: " + type[0] + LocalDateTime.now() + "\n");
 
         Media.audio(socket, hostAddress, serverPort, completeRequest);
         System.out.println();
