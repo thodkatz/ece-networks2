@@ -10,11 +10,42 @@
 \usepackage[utf8]{inputenc}
 \usepackage{indentfirst}
 \usepackage{graphicx}
-\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage[left=0.5cm,right=0.5cm,top=2cm,bottom=2cm]{geometry}
 \usepackage{lipsum}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{verbatim}
+
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
 
 
 \begin{document}
@@ -65,17 +96,34 @@
     \item Στον φάκελο \emph{plots}, έχουμε τέλος ένα python αρχείο για να δημιουργήσουμε τα διαγράμματα μας.
 \end{itemize}
 
-Στη συνέχεια θα επικολλήσουμε μόνο τον κώδικα των \emph{applications} και του \emph{UserApplication.java}...
 
 \pagebreak
 
 \section{UserApplication.java}
 
+\lstinputlisting[language=Java]{../src/UserApplication.java}
+
 \section{applications}
 
 \subsection{Echo.java}
+
+\lstinputlisting[language=Java]{../src/applications/Echo.java}
+
 \subsection{Media.java}
+
+\lstinputlisting[language=Java]{../src/applications/Media.java}
+
 \subsection{Obd.java}
+
+\lstinputlisting[language=Java]{../src/applications/Obd.java}
+
 \subsection{Copter.java}
+
+\lstinputlisting[language=Java]{../src/applications/Copter.java}
+
+\section{Plots}
+
+
+\lstinputlisting[language=Python]{../src/plots/plot.py}
 
 \end{document}

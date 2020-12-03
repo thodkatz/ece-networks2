@@ -57,7 +57,6 @@ class UserApplication {
         do {
         System.out.println("\nPlease enter a number (1-11). Available options are:\n1) Echo with delay\n2) Echo no delay\n3) Temperature\n4) Image\n5) Music\n6) Vehicle UDP\n7) Ithakicopter UDP\n8) Autopilot\n9) HTTPS TCP\n10) Ithakicopter TCP\n11) Vehicle TCP");
         String choiceApp = (new Scanner(System.in)).nextLine();
-        //String choiceApp = "5";
 
         //checkArguements(args); // check the validity of command line arguement
         
@@ -355,7 +354,6 @@ class UserApplication {
 
         case "8":
         /* --------------------------- Autopilot --------------------------- */
-        // The reasons probably this fails is because we keep the stream inactive and server probably close the connection, getting broken pipe
         socket = new DatagramSocket(48078);
         Socket socketAuto = new Socket(hostAddress, 38048);
         input = new Scanner(new File("stamps/auto.txt"));
@@ -438,6 +436,14 @@ class UserApplication {
         socketVehicle.close();
         break;
 
+
+
+        /*
+         * **************************************************************************
+         *            This is a playgorund!! Test whatever you like....
+         * **************************************************************************
+         *
+         */
         case "12":
         Socket foo = new Socket(hostAddress, 38048);
         OutputStream out = foo.getOutputStream();
@@ -496,6 +502,15 @@ class UserApplication {
 
 
         break;
+        /*
+         * **************************************************************************
+         *                            End of playground
+         * **************************************************************************
+         *
+         */
+
+
+
 
         default:
     System.out.println("Please provide a valid input. If you want to exit then press Control-C.\n");

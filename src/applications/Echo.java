@@ -15,7 +15,7 @@ public class Echo {
      * @param requestCode If request code is set to E000 then the execute will have no delay for the RX 
      */
     public static long execute(DatagramSocket socket, InetAddress hostAddress, int serverPort, String requestCode) {
-        //System.out.println("\n--------------------Echo application--------------------");
+        System.out.println("\n--------------------Echo application--------------------");
 
         if (requestCode.equals("E0000")) System.out.println("Delay: OFF"); 
         else if (requestCode.length()>5) System.out.println("Mode: Temperature\nDelay: OFF");
@@ -33,7 +33,7 @@ public class Echo {
             socket.send(sendPacket);
             System.out.println("The request code is: "+ requestCode + "\nThe destination port is: " + serverPort + "\nMy listening port (clientPort): " + socket.getLocalPort());
             long timeBefore = System.currentTimeMillis();
-            //System.out.println("My system time, when the request is sent, is: " + timeBefore);
+            System.out.println("My system time, when the request is sent, is: " + timeBefore);
             
             // LISTEN
             socket.receive(receivePacket);

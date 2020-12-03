@@ -72,6 +72,7 @@ public class Copter {
             //System.out.println("Received data via TCP: " + data);
 
             String[] tokens = data.split("\n");
+            // take only the useful data and skip the info ithaki sent
             telemetry = tokens[13];
         }
         catch (Exception x) {
@@ -90,8 +91,9 @@ public class Copter {
 
 
     /* 
-     * tcpTelemetry function for the TX and udpTelemetry for RX. The way that these two functions are implemented force the autopilot to be used with a combination of these two. We want to send a command 
-     * only if it is needed and we want to listen all the time to get feedback.
+     * tcpTelemetry function for the TX and udpTelemetry for RX. The way that these two functions are implemented force the autopilot 
+     * to be used with a combination of these two. We want to send a command only if it is needed and we want to listen all the time 
+     * to get feedback.
      * 
      */
     public static void autopilot(DatagramSocket listen, InetAddress hostAddress, int serverPort, Socket send, int lowerBound, int higherBound) {

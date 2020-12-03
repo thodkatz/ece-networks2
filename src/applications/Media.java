@@ -295,7 +295,7 @@ outerloop:
         for (int i = 0; i<dataSound.length; i++) {
 
             String hexa = String.format("%02X", dataSound[i]); // print hexadecimal the content of the byte array
-            //System.out.print("Input: decimal: " + dataSound[i] + ", unsigned: " + Byte.toUnsignedInt(dataSound[i])  + " and the hexa: " + hexa + ", ");
+            System.out.print("Input: decimal: " + dataSound[i] + ", unsigned: " + Byte.toUnsignedInt(dataSound[i])  + " and the hexa: " + hexa + ", ");
             // get nibbles
             int maskLow = 0x0F;
             int maskHigh = 0xF0;
@@ -309,7 +309,7 @@ outerloop:
             // get samples
             int sampleFirst = init + diffHigh;
             int sampleSecond = sampleFirst + diffLow;
-            //System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8) +", " + (nibbleLow-8) + " and samples: " + sampleFirst + ", " + sampleSecond);
+            System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8) +", " + (nibbleLow-8) + " and samples: " + sampleFirst + ", " + sampleSecond);
             init = sampleSecond;
 
             // check range
@@ -335,7 +335,7 @@ outerloop:
             byte[] decodedSound = new byte[2];
             decodedSound[0] = (byte)sampleFirst;
             decodedSound[1] = (byte)sampleSecond;
-            //System.out.println(". Output: " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]));
+            System.out.println(". Output: " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]));
             try {
                 bufferSound.write(decodedSound);
             }
@@ -381,7 +381,7 @@ outerloop:
         int init = meanSigned; // in DPCM we don't know the init value, we assume zero. But here we have data in the header.
         for (int i = 3; i<dataSound.length; i++) {
             // the sample may be bigger than byte. So you will need 16 bit encoding and store each int to 2 bytes.
-            //System.out.print("Input: " + String.format("%02X", dataSound[i]) + ", "); // print hexadecimal the content of the byte array                       
+            System.out.print("Input: " + String.format("%02X", dataSound[i]) + ", "); // print hexadecimal the content of the byte array                      
 
             // get nibbles                                                            
             int maskLow = 0x0F;
@@ -396,7 +396,7 @@ outerloop:
             // get samples (implement recursive formula)
             int sampleFirst = init + diffHigh;
             int sampleSecond = sampleFirst + diffLow;
-            //System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8)*step +", " + (nibbleLow-8)*step + " and samples: " + sampleFirst + ", " + sampleSecond);
+            System.out.print("Masks high and low: " + maskHigh + ", " + maskLow + ". Masks in hex: " + String.format("%02X", maskHigh) +", " + String.format("%02X", maskLow) + ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " + String.format("%02X", nibbleLow) + ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow + ", so the actual differences are: " + (nibbleHigh-8)*step +", " + (nibbleLow-8)*step + " and samples: " + sampleFirst + ", " + sampleSecond);
             init = sampleSecond;
 
             // check range
@@ -407,7 +407,7 @@ outerloop:
                 if (samples[j]>max16) samples[j] = max16;
                 else if (samples[j]<min16)  samples[j] = min16; 
             }
-            //System.out.print(". The actual samples due to 16-bit restriction are: " + samples[0] + " and " + samples[1] + " and in hex format: " + String.format("%02X", samples[0]) + ", " + String.format("%02X", samples[1]) + ". In short " + (short)samples[0] + ", " + (short)samples[1] + " and in hex format as a short: " + String.format("%02X", (short)samples[0]) + ", " + String.format("%02X", (short)samples[1]));
+            System.out.print(". The actual samples due to 16-bit restriction are: " + samples[0] + " and " + samples[1] + " and in hex format: " + String.format("%02X", samples[0]) + ", " + String.format("%02X", samples[1]) + ". In short " + (short)samples[0] + ", " + (short)samples[1] + " and in hex format as a short: " + String.format("%02X", (short)samples[0]) + ", " + String.format("%02X", (short)samples[1]));
 
             // write data to files
             try {
@@ -425,7 +425,7 @@ outerloop:
             decodedSound[1] = (byte)samples[0]; // LSB of sample 7-0
             decodedSound[2] = (byte)(samples[1]>>8);
             decodedSound[3] = (byte)samples[1];
-            //System.out.println(". Output: First sample " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]) + " second sample: " + String.format("%02X", decodedSound[2]) + String.format("%02X", decodedSound[3]));
+            System.out.println(". Output: First sample " + String.format("%02X", decodedSound[0]) + String.format("%02X", decodedSound[1]) + " second sample: " + String.format("%02X", decodedSound[2]) + String.format("%02X", decodedSound[3]));
             try {
                 bufferSound.write(decodedSound);
             }
