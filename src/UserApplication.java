@@ -290,7 +290,6 @@ class UserApplication {
         String numAudioPackets = "999";
         String[] type = {"F", "T"};
         String[] encoding = {"AQ", ""};
-        // assuming random choice of track
         String completeRequest = requestCodeSound + encoding[0] + type[0] + numAudioPackets;
 
         File infoMusic = new File("logs/music_info_" + encoding[1] + type[0] + ".txt");
