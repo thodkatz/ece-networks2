@@ -129,7 +129,7 @@ class UserApplication {
         try {
           int userInput = in.nextInt();
           if (Integer.valueOf(userInput) == 1) {
-            encodingImage = "CAM=PTZ";
+            encodingImage = "CAM=PTZDIR=L";
           } else {
             encodingImage = "CAM=FIX";
           }
