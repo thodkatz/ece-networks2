@@ -1,6 +1,5 @@
 package applications;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -25,7 +24,6 @@ public class Obd {
         new DatagramPacket(rxbuffer, rxbuffer.length);
 
     for (int i = 0; i < header.length; i++) {
-
       // TX
       String completeCode = (requestCode + "OBD=" + header[i]);
       byte[] txbuffer = completeCode.getBytes();
@@ -35,9 +33,7 @@ public class Obd {
       try {
         socket.send(sendPacket);
       } catch (Exception x) {
-        // x.printStackTrace(); // a more detailed diagnostic call
-        System.out.println(x);
-        System.out.println("OBD vehicle application TX failed");
+        x.printStackTrace();
       }
       long timeBefore = System.currentTimeMillis();
 
@@ -55,21 +51,18 @@ public class Obd {
         int[] values = parser(message);
         formula(values[0], values[1], header[i]);
       } catch (Exception x) {
-        System.out.println(x);
-        System.out.println("RX UDP vehicle failed");
+        x.printStackTrace();
       }
     }
   }
 
   public static float tcpTelemetry(Socket socket, FileWriter writerVehicle) {
-
     float engineTime = 0;
 
     try {
       InputStream in = socket.getInputStream();
       OutputStream out = socket.getOutputStream();
-      BufferedReader bf = new BufferedReader(new InputStreamReader(
-          in)); // wrapper on top of the wrapper as java docs recommends
+      BufferedReader bf = new BufferedReader(new InputStreamReader(in));
 
       for (int i = 0; i < header.length; i++) {
         out.write((header[i] + "\r").getBytes());
@@ -95,8 +88,7 @@ public class Obd {
 
       writerVehicle.write("\n");
     } catch (Exception x) {
-      System.out.println(x);
-      System.out.println("Oops... Vehicle OBD TCP failed");
+      x.printStackTrace();
     }
 
     return engineTime;
@@ -151,17 +143,12 @@ public class Obd {
 
   private static int[] parser(String data) {
     String byte1 = data.substring(6, 8);
-    // how to convert hexadecimal string to int?
     int first = Integer.parseInt(byte1, 16);
-    System.out.print("Parsing the data: 1st byte: " + byte1 +
-                     " and as an integer: " + first);
     String byte2 = "";
     int second = 0;
     if (data.length() > 8) {
       byte2 = data.substring(9, 11);
       second = Integer.parseInt(byte2, 16);
-      System.out.print(", 2nd byte: " + byte2 +
-                       " and as an integer: " + second);
     }
     System.out.println();
 

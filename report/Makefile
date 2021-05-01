@@ -1,19 +1,19 @@
-report: report.tex
+report: tex/report.tex
 	xelatex $<
 
-session1: session1.tex
+session1: tex/session1.tex
 	xelatex $<
 
-session2: session2.tex
+session2: tex/session2.tex
 	xelatex $<
 
-source: source.tex
+source: tex/source.tex
 	xelatex $<
 
-wireshark: wireshark.tex
+wireshark: tex/wireshark.tex
 	xelatex $<
 
-router: router.tex
+router: tex/router.tex
 	xelatex $<
 
 .PHONY: clean

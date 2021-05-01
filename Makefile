@@ -18,4 +18,4 @@ clean:
 	rm -rf $(CLASSES)/*
 
 clean_logs:
-	rm -f media/*.jpg logs/*.txt
+	rm -f media/image/*.jpg logs/*

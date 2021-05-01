@@ -6,7 +6,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -14,17 +13,15 @@ import javax.sound.sampled.*;
 
 public class Media {
 
-  private static String pathFileImage = "/media/image/ithaki_image.jpg";
-  private static String pathFileSound = "/media/music/track.wav";
+  private static String pathFileImage = "./media/image/ithaki_image.jpg";
+  private static String pathFileSound = "./media/music/track.wav";
 
   public static void image(DatagramSocket socket, InetAddress hostAddress,
-                           int serverPort, String requestCode)
-      throws IOException {
+                           int serverPort, String requestCode) {
     byte[] txbufferImage = requestCode.getBytes();
     byte[] rxbufferImage = new byte[1024];
     int countPackets = 0;
     long timeBefore = System.currentTimeMillis();
-    long timeBeforePerPacket = System.currentTimeMillis();
 
     System.out.println("The request code is " + requestCode);
     DatagramPacket sendPacket = new DatagramPacket(
@@ -33,12 +30,14 @@ public class Media {
         new DatagramPacket(rxbufferImage, rxbufferImage.length);
 
     // TX
-    System.out.println("I am sleeping... Camera needs time to readjust");
     try {
       socket.send(sendPacket);
-      Thread.sleep(5000); // sleep in order for the camera to readjust
+      if (requestCode.contains("DIR")) {
+        System.out.println("I am sleeping... Camera needs time to readjust");
+        Thread.sleep(5000); // sleep in order for the camera to readjust
+      }
     } catch (Exception x) {
-      System.out.println(x);
+      x.printStackTrace();
     }
 
     // RX
@@ -50,20 +49,8 @@ public class Media {
         socket.receive(receivePacket); // blocking command
         countPackets++;
 
-        long timeAfterPerPacket = System.currentTimeMillis();
-        System.out.println("The time required to reveive a packet is: " +
-                           (timeAfterPerPacket - timeBeforePerPacket) /
-                               (float)1000 +
-                           " seconds");
-        timeBeforePerPacket = System.currentTimeMillis();
-
-        System.out.println("Packet No" + countPackets +
-                           ". Length of data: " + rxbufferImage.length +
-                           ". The received bytes in hexadecimal format are:");
         for (int i = 0; i < rxbufferImage.length; i++) {
-          System.out.print(String.format(
-              "%02X", rxbufferImage[i])); // convert bytes to hexa string
-
+          // System.out.print(String.format("%02X", rxbufferImage[i]));
           bufferImage.write(rxbufferImage[i]); // dynamic byte allocation
           if ((String.format("%02X", rxbufferImage[i]).equals("D9")) &&
               (i != 0)) {
@@ -72,83 +59,37 @@ public class Media {
             }
           }
         }
-        System.out.println();
       }
     } catch (Exception x) {
-      // x.printStackTrace(); // a more detailed diagnostic call
-      System.out.println(x);
-      System.out.println("Image application RX failed");
+      x.printStackTrace();
     }
-    long timeAfter = System.currentTimeMillis(); // get the time when the image
-                                                 // is received in bytes
 
-    // logs for the received byte content
-    System.out.println(
-        "\nComplete byte content of the image file in hexadecimal format:");
     byte[] completeDataImage = bufferImage.toByteArray();
-    for (byte i : completeDataImage) {
-      System.out.print(String.format(
-          "%02X", i)); // print hexadecimal the content of the byte array
-    }
-    System.out.println("\n\nTotal number of packages: " + (countPackets));
-    System.out.println("How many Kbytes is the image? " +
-                       completeDataImage.length / (float)1000);
+    imageInfo(completeDataImage, countPackets, timeBefore);
 
     // save image to a file
-    try (FileOutputStream fos = new FileOutputStream(new File(pathFileImage))) {
-      fos.write(completeDataImage);
-      System.out.println("File has been written successfully");
-    } catch (Exception x) {
-      System.out.println(x);
-    }
+    saveImage(completeDataImage, pathFileImage);
 
-    // what time is o'clock?
-    System.out.println("Total amount of time to receive a frame: " +
-                       (timeAfter - timeBefore) / (float)1000 + " seconds");
-    timeAfter =
-        System.currentTimeMillis(); // get the time when the file is ready
-    System.out.println(
-        "Total amount of time to receive and write a frame in a .jpg file: " +
-        (timeAfter - timeBefore) / (float)1000 + " seconds");
-
-    // open file image
-    // Desktop desktop = Desktop.getDesktop();
-    // File imageFile = new File(pathFileImage);
-    // if (imageFile.exists()) {
-    //   desktop.open(imageFile);
-    // }
+    // openImage(pathFileImage);
   }
 
   public static void audio(DatagramSocket socket, InetAddress hostAddress,
-                           int serverPort, String requestCode) {
+                           int serverPort, String encoding, String type,
+                           String numAudioPackets, String songID,
+                           String requestCodeSound) {
 
-    // parsing the requestCode
-    // expecting requestCode: AXXXX + ("AQ"" or "") + ("T" or "F") +
-    // numAudioPackets
-    String encoding = "";
-    String type = "F";
-    String numAudioPackets = "";
-    if (requestCode.length() == 11) {
-      encoding = "AQ";
-      type = requestCode.substring(7, 8);
-      numAudioPackets = requestCode.substring(8, 11);
-    } else {
-      type = requestCode.substring(5, 6);
-      numAudioPackets = requestCode.substring(6, 9);
-    }
-    System.out.println("Requested: Encoding: " + encoding + ". Type: " + type +
-                       ". Number of packets: " + numAudioPackets);
+    String completeRequest =
+        requestCodeSound + encoding + type + numAudioPackets;
+    System.out.println("The request code: " + completeRequest);
 
     // TX
-    byte[] txbufferSound = ("L02" + requestCode).getBytes();
+    byte[] txbufferSound = (songID + completeRequest).getBytes();
     DatagramPacket sendPacket = new DatagramPacket(
         txbufferSound, txbufferSound.length, hostAddress, serverPort);
     try {
       socket.send(sendPacket);
     } catch (Exception x) {
-      // x.printStackTrace(); // a more detailed diagnostic call
-      System.out.println(x);
-      System.out.println("Audio application TX failed");
+      x.printStackTrace();
     }
 
     // RX
@@ -157,106 +98,141 @@ public class Media {
         new DatagramPacket(dataSound, dataSound.length);
     ByteArrayOutputStream bufferSound = new ByteArrayOutputStream();
     int countPackets = 0;
-    int packetsSize = 0;
+    int packetSize = 0;
     long timeBefore = System.currentTimeMillis();
-    long timeBeforePerPacket = System.currentTimeMillis();
 
-    // create files
-    File diffSamples = new File("logs/" + encoding + type + "diff_samples.txt");
-    File fileSamples = new File("logs/" + encoding + type + "samples.txt");
-    File fileMean = new File("logs/aqdpcm_mean.txt");
-    File fileStep = new File("logs/aqdpcm_step.txt");
-    FileWriter writerDiffSamples = null;
-    FileWriter writerSamples = null;
-    FileWriter writerMean = null;
-    FileWriter writerStep = null;
-    try {
-      writerDiffSamples = new FileWriter(diffSamples);
-      writerSamples = new FileWriter(fileSamples);
-      writerMean = new FileWriter(fileMean);
-      writerStep = new FileWriter(fileStep);
-    } catch (Exception x) {
-      System.out.println(x);
-      System.out.println("Failed to create a file writer for the DPCM");
-    }
-
-    try {
+    try (FileWriter writerDiffSamples = new FileWriter(
+             new File("logs/" + encoding + type + "diff_samples.txt"));
+         FileWriter writerSamples = new FileWriter(
+             new File("logs/" + encoding + type + "samples.txt"));
+         FileWriter writerMean =
+             new FileWriter(new File("logs/aqdpcm_mean.txt"));
+         FileWriter writerStep =
+             new FileWriter(new File("logs/aqdpcm_step.txt"))) {
       socket.setSoTimeout(3000);
-      for (int l = 0; l < Integer.parseInt(numAudioPackets); l++) {
-        timeBeforePerPacket = System.currentTimeMillis();
+      for (int l = 0; l < Integer.valueOf(numAudioPackets); l++) {
         socket.receive(receivePacket);
         countPackets++;
-        long timeAfterPerPacket = System.currentTimeMillis();
-        System.out.println("The time required to reveive a packet is: " +
-                           (timeAfterPerPacket - timeBeforePerPacket) /
-                               (float)1000 +
-                           " seconds");
-
-        packetsSize += dataSound.length;
-        System.out.println("Packet No" + countPackets +
-                           ". Length of data: " + dataSound.length);
+        packetSize += dataSound.length;
 
         if (encoding.equals("")) {
-          // DPCM
           bufferSound.write(dpcm(dataSound, writerDiffSamples, writerSamples));
         } else if (encoding.equals("AQ")) {
-          // AQ-DPCM
-
           bufferSound.write(adpcm(dataSound, writerDiffSamples, writerSamples,
                                   writerMean, writerStep));
         } else {
           System.out.println("This is not a valid request code");
         }
-        System.out.println();
       }
     } catch (Exception x) {
-      System.out.println(x);
-      System.out.println("Receiving/writing the audio data failed");
-    }
-
-    // close files
-    try {
-      writerSamples.close();
-      writerDiffSamples.close();
-      writerMean.close();
-      writerStep.close();
-    } catch (Exception x) {
-      System.out.println(x);
-      System.out.println("Failed to close audio files");
+      x.printStackTrace();
     }
 
     long timeAfter = System.currentTimeMillis();
-
-    System.out.println(
-        "\nComplete byte content of the sound file in hexadecimal format:");
     byte[] completeDataSound = bufferSound.toByteArray();
-    for (byte i : completeDataSound) {
-      String hexa = String.format(
-          "%02X", i); // print hexadecimal the content of the byte array
-      System.out.print(hexa);
+    musicInfo(completeDataSound, timeBefore, timeAfter, countPackets,
+              packetSize);
+
+    // only in 16 bit samples does matter. In
+    // AQ-DPCM we use 16 bit encoding
+    boolean isBigEndian = false;
+    int encodingBits = 8;
+    if (encoding.equals("AQ")) {
+      isBigEndian = true;
+      encodingBits = 16;
     }
+
+    AudioFormat modulationPCM =
+        new AudioFormat(8000, encodingBits, 1, true, isBigEndian);
+    // play sound
+    playMusic(completeDataSound, modulationPCM);
+
+    // save music to file
+    saveMusic(completeDataSound, modulationPCM);
+  }
+
+  private static void openImage(String fileImage) {
+    Desktop desktop = Desktop.getDesktop();
+    File imageFile = new File(pathFileImage);
+    if (imageFile.exists()) {
+      try {
+        desktop.open(imageFile);
+      } catch (Exception x) {
+        x.printStackTrace();
+      }
+    }
+  }
+
+  private static void imageInfo(byte[] completeDataImage, int countPackets,
+                                long timeBefore) {
+    // printImageHex(completeDataImage);
+    System.out.println("\nTotal number of packages: " + (countPackets));
+    System.out.println("How many Kbytes is the image? " +
+                       completeDataImage.length / (float)1000);
+
+    System.out.println("Total amount of time to receive a frame: " +
+                       (System.currentTimeMillis() - timeBefore) / (float)1000 +
+                       " seconds");
+    System.out.println(
+        "Total amount of time to receive and write a frame in a .jpg file: " +
+        (System.currentTimeMillis() - timeBefore) / (float)1000 + " seconds");
+  }
+
+  /**
+   * For deubgging purposes print bytes to hexadecimal
+   * @param completeData The byte array to be printed as hexadecimal
+   */
+  private static void printByteHex(byte[] completeData) {
+    System.out.println(
+        "\nComplete byte content of the data file in hexadecimal format:");
+    for (byte i : completeData) {
+      System.out.print(String.format("%02X", i));
+    }
+  }
+
+  private static void musicInfo(byte[] completeDataSound, long timeBefore,
+                                long timeAfter, int countPackets,
+                                int packetSize) {
+
+    // printByteHex(completeDataSound);
 
     System.out.println("\n\nTotal number of packages: " + (countPackets));
     System.out.println(
         "How many Kbytes is the sound? " +
         completeDataSound.length / (float)1000 +
         "\nHow many Kbytes is the data that was actually sent? " +
-        packetsSize / (float)1000);
+        packetSize / (float)1000);
     System.out.println("Total amount of time to receive sound data: " +
                        (timeAfter - timeBefore) / (float)1000 + " seconds");
+  }
 
-    boolean isBigEndian = false; // only in 16 bit samples does matter. In
-                                 // AQ-DPCM we use 16 bit encoding
-    int encodingBits = 8;
-    if (encoding.equals("AQ")) {
-      isBigEndian = true;
-      encodingBits = 16;
+  private static void saveImage(byte[] completeDataImage,
+                                String pathFileImage) {
+    try (FileOutputStream fos = new FileOutputStream(new File(pathFileImage))) {
+      fos.write(completeDataImage);
+      System.out.println("File has been written successfully");
+    } catch (Exception x) {
+      x.printStackTrace();
     }
-    AudioFormat modulationPCM =
-        new AudioFormat(8000, encodingBits, 1, true, isBigEndian);
-    // play sound
-    try {
-      SourceDataLine outputAudio = AudioSystem.getSourceDataLine(modulationPCM);
+  }
+
+  private static void saveMusic(byte[] completeDataSound,
+                                AudioFormat modulationPCM) {
+    try (AudioInputStream streamSoundInput = new AudioInputStream(
+             new ByteArrayInputStream(completeDataSound), modulationPCM,
+             completeDataSound.length / modulationPCM.getFrameSize())) {
+      AudioSystem.write(streamSoundInput, AudioFileFormat.Type.WAVE,
+                        new File(pathFileSound));
+      System.out.println("Sound file creation success");
+    } catch (Exception x) {
+      x.printStackTrace();
+    }
+  }
+
+  private static void playMusic(byte[] completeDataSound,
+                                AudioFormat modulationPCM) {
+    try (SourceDataLine outputAudio =
+             AudioSystem.getSourceDataLine(modulationPCM)) {
       // outputAudio.open(modulationPCM, 3200);
       outputAudio.open(modulationPCM);
       outputAudio.start();
@@ -273,26 +249,9 @@ public class Media {
       Thread.sleep(500);
       outputAudio.write(completeDataSound, 0, completeDataSound.length);
       outputAudio.stop();
-      outputAudio.close();
       System.out.println("\nSound application success!");
     } catch (Exception x) {
-      System.out.println(x);
-      System.out.println("Sound playing failed");
-    }
-
-    // save music to file
-    try {
-      ByteArrayInputStream bufferSoundInput =
-          new ByteArrayInputStream(completeDataSound);
-      AudioInputStream streamSoundInput = new AudioInputStream(
-          bufferSoundInput, modulationPCM,
-          completeDataSound.length / modulationPCM.getFrameSize());
-      AudioSystem.write(streamSoundInput, AudioFileFormat.Type.WAVE,
-                        new File(pathFileSound));
-      System.out.println("Sound file creation success");
-    } catch (Exception x) {
-      System.out.println(x);
-      System.out.println("Sound file creation failed");
+      x.printStackTrace();
     }
   }
 
@@ -301,23 +260,18 @@ public class Media {
 
     ByteArrayOutputStream bufferSound = new ByteArrayOutputStream();
     int init = 0;
-    int step = 1; // Trials: for 100 is pure noise, 4 good, 10 bad. I think
-                  // below 4 you are good. In general it shouldn't
+    int step = 1;
 
     for (int i = 0; i < dataSound.length; i++) {
-
-      String hexa = String.format(
-          "%02X",
-          dataSound[i]); // print hexadecimal the content of the byte array
-      System.out.print("Input: decimal: " + dataSound[i] +
-                       ", unsigned: " + Byte.toUnsignedInt(dataSound[i]) +
-                       " and the hexa: " + hexa + ", ");
       // get nibbles
       int maskLow = 0x0F;
       int maskHigh = 0xF0;
-      int nibbleLow = dataSound[i] & maskLow; // D[i] = x[i] - x[i-1]
-      int nibbleHigh =
-          (dataSound[i] & maskHigh) >> 4; // D[i-1] = x[i-1] - x[i-2]
+
+      // D[i] = x[i] - x[i-1]
+      int nibbleLow = dataSound[i] & maskLow;
+
+      // D[i-1] = x[i-1] - x[i-2]
+      int nibbleHigh = (dataSound[i] & maskHigh) >> 4;
 
       // differences
       int diffHigh = (nibbleHigh - 8) * step;
@@ -326,50 +280,30 @@ public class Media {
       // get samples
       int sampleFirst = init + diffHigh;
       int sampleSecond = sampleFirst + diffLow;
-      System.out.print(
-          "Masks high and low: " + maskHigh + ", " + maskLow +
-          ". Masks in hex: " + String.format("%02X", maskHigh) + ", " +
-          String.format("%02X", maskLow) +
-          ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " +
-          String.format("%02X", nibbleLow) +
-          ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow +
-          ", so the actual differences are: " + (nibbleHigh - 8) + ", " +
-          (nibbleLow - 8) + " and samples: " + sampleFirst + ", " +
-          sampleSecond);
       init = sampleSecond;
 
-      // check range
-      int max8 = (int)(Math.pow(2, 7)) - 1;
-      int min8 = -(int)(Math.pow(2, 7));
+      // clipping
       int[] samples = {sampleFirst, sampleSecond};
-      for (int j = 0; j < samples.length; j++) {
-        if (samples[j] > max8)
-          samples[j] = max8;
-        else if (samples[j] < min8)
-          samples[j] = min8;
-      }
-
-      // write data to files
-      try {
-        writerDiffSamples.write(diffHigh + "\n" + diffLow + "\n");
-        writerSamples.write(samples[0] + "\n" + samples[1] + "\n");
-      } catch (Exception x) {
-        System.out.println(x);
-        System.out.println("Failed to write data to DPCM file");
-      }
+      clipping(samples);
 
       // write to buffer
       byte[] decodedSound = new byte[2];
       decodedSound[0] = (byte)sampleFirst;
       decodedSound[1] = (byte)sampleSecond;
-      System.out.println(". Output: " + String.format("%02X", decodedSound[0]) +
-                         String.format("%02X", decodedSound[1]));
+
       try {
         bufferSound.write(decodedSound);
+        writerDiffSamples.write(diffHigh + "\n" + diffLow + "\n");
+        writerSamples.write(samples[0] + "\n" + samples[1] + "\n");
       } catch (Exception x) {
-        System.out.println(x);
-        System.out.println("Decoding DPCM failed");
+        x.printStackTrace();
       }
+    }
+
+    try {
+      bufferSound.close();
+    } catch (Exception x) {
+      x.printStackTrace();
     }
 
     return bufferSound.toByteArray();
@@ -380,53 +314,32 @@ public class Media {
                               FileWriter writerStep) {
 
     // get the header first
-    int mean = (Byte.toUnsignedInt(dataSound[1]) << 8 |
-                Byte.toUnsignedInt(
-                    dataSound[0])); // be sure to not preserve the byte sign
-    int meanSigned =
-        (dataSound[1] << 8 | dataSound[0]); // this is wrong. Not sure though?
-    System.out.println(
-        "dataSound[1]: " + String.format("%02X", dataSound[1]) +
-        ", dataSound[1]<<8: " +
-        String.format("%02X", (Byte.toUnsignedInt(dataSound[1])) << 8));
-    System.out.println(
-        "The MSB of mean is " + String.format("%02X", dataSound[1]) +
-        " and the LSB of the mean is " + String.format("%02X", dataSound[0]) +
-        ". The mean is " + mean + " and signed " + meanSigned +
-        " and in hex unsigned: " + String.format("%02X", mean) +
-        " and signed " + String.format("%02X", meanSigned));
+    int meanSigned = (dataSound[1] << 8 | dataSound[0]);
     int step = (Byte.toUnsignedInt(dataSound[3]) << 8 |
                 Byte.toUnsignedInt(dataSound[2]));
-    System.out.println("The MSB of step is " +
-                       String.format("%02X", dataSound[3]) +
-                       " and the LSB of the step is " +
-                       String.format("%02X", dataSound[2]) + ". The step is " +
-                       step + " and in hex: " + String.format("%02X", step));
+    System.out.println(meanSigned);
 
     try {
       writerMean.write(meanSigned + "\n");
       writerStep.write(step + "\n");
     } catch (Exception x) {
-      System.out.println(x);
-      System.out.println("Failed to write mean and step files for AQ-DPCM");
+      x.printStackTrace();
     }
 
     ByteArrayOutputStream bufferSound = new ByteArrayOutputStream();
-    int init = meanSigned; // in DPCM we don't know the init value, we assume
-                           // zero. But here we have data in the header.
+    // in DPCM we don't know the init value, we assume
+    // zero. But here we have data in the header.
+    int init = meanSigned;
     for (int i = 3; i < dataSound.length; i++) {
-      // the sample may be bigger than byte. So you will need 16 bit encoding
-      // and store each int to 2 bytes.
-      System.out.print("Input: " + String.format("%02X", dataSound[i]) +
-                       ", "); // print hexadecimal the content of the byte array
-
       // get nibbles
       int maskLow = 0x0F;
       int maskHigh = 0xF0;
-      int nibbleLow =
-          (dataSound[i] & maskLow); // D[i] = x[i] - x[i-1], should be unsigned
-      int nibbleHigh = (dataSound[i] & maskHigh) >>
-                       4; // D[i-1] = x[i-1] - x[i-2], should be unsigned
+
+      // D[i] = x[i] - x[i-1], should be unsigned
+      int nibbleLow = (dataSound[i] & maskLow);
+
+      // D[i-1] = x[i-1] - x[i-2], should be unsigned
+      int nibbleHigh = (dataSound[i] & maskHigh) >> 4;
 
       // differences
       int diffHigh = (nibbleHigh - 8) * step;
@@ -435,45 +348,18 @@ public class Media {
       // get samples (implement recursive formula)
       int sampleFirst = init + diffHigh;
       int sampleSecond = sampleFirst + diffLow;
-      System.out.print(
-          "Masks high and low: " + maskHigh + ", " + maskLow +
-          ". Masks in hex: " + String.format("%02X", maskHigh) + ", " +
-          String.format("%02X", maskLow) +
-          ". Result of mask: " + String.format("%02X", nibbleHigh) + ", " +
-          String.format("%02X", nibbleLow) +
-          ". Nibbles high and low: " + nibbleHigh + ", " + nibbleLow +
-          ", so the actual differences are: " + (nibbleHigh - 8) * step + ", " +
-          (nibbleLow - 8) * step + " and samples: " + sampleFirst + ", " +
-          sampleSecond);
       init = sampleSecond;
 
-      // check range
-      int max16 = (int)(Math.pow(2, 15)) - 1;
-      int min16 = -(int)(Math.pow(2, 15));
+      // cliping
       int[] samples = {sampleFirst, sampleSecond};
-      for (int j = 0; j < samples.length; j++) {
-        if (samples[j] > max16)
-          samples[j] = max16;
-        else if (samples[j] < min16)
-          samples[j] = min16;
-      }
-      System.out.print(
-          ". The actual samples due to 16-bit restriction are: " + samples[0] +
-          " and " + samples[1] +
-          " and in hex format: " + String.format("%02X", samples[0]) + ", " +
-          String.format("%02X", samples[1]) + ". In short " +
-          (short)samples[0] + ", " + (short)samples[1] +
-          " and in hex format as a short: " +
-          String.format("%02X", (short)samples[0]) + ", " +
-          String.format("%02X", (short)samples[1]));
+      clipping(samples);
 
       // write data to files
       try {
         writerDiffSamples.write(diffHigh + "\n" + diffLow + "\n");
         writerSamples.write(samples[0] + "\n" + samples[1] + "\n");
       } catch (Exception x) {
-        System.out.println(x);
-        System.out.println("Failed to write data to AQ-DPCM file");
+        x.printStackTrace();
       }
 
       // write to buffer
@@ -482,19 +368,25 @@ public class Media {
       decodedSound[1] = (byte)samples[0];        // LSB of sample 7-0
       decodedSound[2] = (byte)(samples[1] >> 8);
       decodedSound[3] = (byte)samples[1];
-      System.out.println(
-          ". Output: First sample " + String.format("%02X", decodedSound[0]) +
-          String.format("%02X", decodedSound[1]) +
-          " second sample: " + String.format("%02X", decodedSound[2]) +
-          String.format("%02X", decodedSound[3]));
+
       try {
         bufferSound.write(decodedSound);
       } catch (Exception x) {
-        System.out.println(x);
-        System.out.println("Decoding DPCM failed");
+        x.printStackTrace();
       }
     }
 
     return bufferSound.toByteArray();
+  }
+
+  private static void clipping(int[] samples) {
+    int max16 = (int)(Math.pow(2, 15)) - 1;
+    int min16 = -(int)(Math.pow(2, 15));
+    for (int j = 0; j < samples.length; j++) {
+      if (samples[j] > max16)
+        samples[j] = max16;
+      else if (samples[j] < min16)
+        samples[j] = min16;
+    }
   }
 }

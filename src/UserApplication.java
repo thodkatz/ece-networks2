@@ -1,26 +1,19 @@
-// it is considered in general a bad practise to use asterisks to import all the
-// classes
 import applications.*;
-import java.awt.Desktop;
-import java.io.*;
-import java.lang.Math.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.System;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Scanner;
-import javax.sound.sampled.*;
 
 class UserApplication {
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
 
     printWelcome();
-
-    // preamble
-    byte[] hostIP = {(byte)155, (byte)207, (byte)18, (byte)208};
-    InetAddress hostAddress = InetAddress.getByAddress(hostIP);
 
     String[] codes = WebScraping.getCodes();
     int clientPort = Integer.valueOf(codes[0]);
@@ -32,7 +25,18 @@ class UserApplication {
     String requestCodeCopter = codes[5];
     String requestCodeVehicle = codes[6];
 
-    DatagramSocket socket = new DatagramSocket(clientPort);
+    byte[] hostIP = {(byte)155, (byte)207, (byte)18, (byte)208};
+    InetAddress hostAddress = null;
+    DatagramSocket socket = null;
+
+    try {
+      hostAddress = InetAddress.getByAddress(hostIP);
+      socket = new DatagramSocket(clientPort);
+    } catch (Exception x) {
+      x.printStackTrace();
+    }
+
+    Scanner in = new Scanner(System.in);
 
     // control user input
     int flag = 1;
@@ -50,14 +54,10 @@ class UserApplication {
           + "9) HTTPS TCP\n"
           + "10) Ithakicopter TCP\n"
           + "11) Vehicle TCP");
-
-      Scanner in = new Scanner(System.in);
       String choiceApp = in.nextLine();
-      in.close();
 
       switch (choiceApp) {
       case "1":
-
         /* ------------------- Echo with delay ------------------ */
         printASCII("src/ascii/echo.txt");
 
@@ -72,7 +72,7 @@ class UserApplication {
 
           writerInfo.write("Toc: " + LocalDateTime.now());
         } catch (Exception x) {
-          System.out.println(x);
+          x.printStackTrace();
         }
 
         break;
@@ -94,7 +94,7 @@ class UserApplication {
                          "no_delay.txt");
           writerInfo.write("Toc: " + LocalDateTime.now());
         } catch (Exception x) {
-          System.out.println(x);
+          x.printStackTrace();
         }
 
         break;
@@ -116,7 +116,7 @@ class UserApplication {
 
           writerTemp.write(LocalDateTime.now() + "\n");
         } catch (Exception x) {
-          System.out.println(x);
+          x.printStackTrace();
         }
         break;
 
@@ -124,9 +124,21 @@ class UserApplication {
         /* --------------------------- Image --------------------------- */
         printASCII("src/ascii/image.txt");
 
-        String encodingImage = "CAM=PTZDIR=R";
-        try (FileWriter writerImage =
-                 new FileWriter(new File("logs/image_info_" + encodingImage))) {
+        String encodingImage = "";
+        System.out.println("Enter 0 for CAM and 1 for PTZ: ");
+        try {
+          int userInput = in.nextInt();
+          if (Integer.valueOf(userInput) == 1) {
+            encodingImage = "CAM=PTZ";
+          } else {
+            encodingImage = "CAM=FIX";
+          }
+        } catch (Exception x) {
+          x.printStackTrace();
+        }
+
+        try (FileWriter writerImage = new FileWriter(
+                 new File("logs/image_info_" + encodingImage + ".txt"))) {
           writerImage.write(encodingImage + "\n" + requestCodeImage + "\n" +
                             LocalDateTime.now() + "\n");
 
@@ -135,10 +147,10 @@ class UserApplication {
                         requestCodeImage + encodingImage);
             System.out.println();
           }
-          
+
           writerImage.write(LocalDateTime.now() + "\n");
         } catch (Exception x) {
-          System.out.println(x);
+          x.printStackTrace();
         }
 
         break;
@@ -148,133 +160,143 @@ class UserApplication {
         printASCII("src/ascii/audio.txt");
 
         String numAudioPackets = "999";
-        String[] type = {"F", "T"};
-        String[] encoding = {"AQ", ""};
-        String completeRequest =
-            requestCodeSound + encoding[0] + type[0] + numAudioPackets;
+
+        // song
+        String type = "F";
+
+        // tone
+        // String type = "T";
+
+        // AQDPCM modulation
+        // String encoding = "AQ";
+
+        // DPCM modulation
+        String encoding = "";
+
+        // choose song L00 - L??
+        String songID = "L02";
 
         File infoMusic =
-            new File("logs/music_info_" + encoding[1] + type[0] + ".txt");
-        FileWriter writerInfoMusic = new FileWriter(infoMusic);
-        writerInfoMusic.write(requestCodeSound + "\nEncoding: " + encoding[1] +
-                              "\nType: " + type[0] + LocalDateTime.now() +
-                              "\n");
+            new File("logs/music_info_" + encoding + type + ".txt");
+        try (FileWriter writerInfoMusic = new FileWriter(infoMusic)) {
+          writerInfoMusic.write(requestCodeSound + "\nEncoding: " + encoding +
+                                "\nType: " + type + LocalDateTime.now() + "\n");
 
-        Media.audio(socket, hostAddress, serverPort, completeRequest);
-        System.out.println();
+          Media.audio(socket, hostAddress, serverPort, encoding, type,
+                      numAudioPackets, songID, requestCodeSound);
+          System.out.println();
 
-        writerInfoMusic.write(LocalDateTime.now() + "\n");
-        writerInfoMusic.close();
-        socket.close();
+          writerInfoMusic.write(LocalDateTime.now() + "\n");
+          writerInfoMusic.close();
+        } catch (Exception x) {
+          x.printStackTrace();
+        }
+
         break;
 
       case "6":
         /* ------------------- Vehicle OBD UDP ------------------ */
         printASCII("src/ascii/obd.txt");
-
         Obd.udpTelemetry(socket, hostAddress, serverPort, requestCodeVehicle);
-        socket.close();
         break;
 
       case "7":
         /* ------------------ Ithakicopter UDP ------------------ */
         printASCII("src/ascii/copter.txt");
 
-        socket = new DatagramSocket(48078);
-
-        System.out.println(
-            "For Ithakicopter UDP telemetry you need to open ithakicopter.jar");
-        System.out.print("Did you open it? If yes press ENTER to continue");
-        System.in.read();
-        Thread.sleep(1000); // pause a bit to catch up with the user
-        System.out.println("Press ENTER to exit");
-        Thread.sleep(1000);
-
-        FileWriter writerCopter =
-            new FileWriter(new File("logs/copter_info.txt"));
-        writerCopter.write("Info Ithakicopter app:\n" + LocalDateTime.now() +
-                           "\n");
-        writerCopter.write("MOTOR ALTITUDE TEMPERATURE PRESSURE");
-
-        for (int i = 0; i < 4; i++)
-          Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
-
-        while (System.in.available() == 0) {
-          Copter.udpTelemetry(socket, hostAddress, serverPort, writerCopter);
+        try {
+          socket = new DatagramSocket(48078);
+        } catch (Exception x) {
+          x.printStackTrace();
         }
 
-        writerCopter.write(LocalDateTime.now() + "\n");
-        writerCopter.close();
-        socket.close();
+        copterWelcome();
+
+        try (FileWriter writerCopter =
+                 new FileWriter(new File("logs/copter_info.txt"))) {
+          writerCopter.write("Info Ithakicopter app:\n" + LocalDateTime.now() +
+                             "\n");
+          writerCopter.write("MOTOR ALTITUDE TEMPERATURE PRESSURE");
+
+          while (System.in.available() == 0) {
+            Copter.udpTelemetry(socket, hostAddress, serverPort, writerCopter);
+          }
+
+          writerCopter.write(LocalDateTime.now() + "\n");
+        } catch (Exception x) {
+          x.printStackTrace();
+        }
         break;
 
       case "8":
         /* ---------------------- Autopilot --------------------- */
         printASCII("src/ascii/auto.txt");
 
-        socket = new DatagramSocket(48078);
-        Socket socketAuto = new Socket(hostAddress, 38048);
+        try (Socket socketAuto = new Socket(hostAddress, 38048)) {
+          socket = new DatagramSocket(48078);
+          int lowerBound = 160;
+          int higherBound = 190;
+          Copter.autopilot(socket, hostAddress, serverPort, socketAuto,
+                           Math.min(200, Math.max(150, lowerBound)),
+                           Math.min(200, Math.max(150, higherBound)));
+        } catch (Exception x) {
+          x.printStackTrace();
+          ;
+        }
 
-        int lowerBound = 160;
-        int higherBound = 190;
-        Copter.autopilot(socket, hostAddress, serverPort, socketAuto,
-                         Math.min(200, Math.max(150, lowerBound)),
-                         Math.min(200, Math.max(150, higherBound)));
-        socketAuto.close();
         break;
 
       case "9":
         /* ---------------------- HTTPS TCP --------------------- */
         printASCII("src/ascii/https.txt");
 
-        Socket httpsSocket = new Socket(hostAddress, 80);
-        https(httpsSocket);
-        httpsSocket.close();
+        try (Socket httpsSocket = new Socket(hostAddress, 80)) {
+          https(httpsSocket);
+        } catch (Exception x) {
+          x.printStackTrace();
+        }
+
         break;
 
       case "10":
         /* ------------------- IthakicopterTCP ------------------ */
         printASCII("src/ascii/copter_tcp.txt");
 
-        for (int i = 0; i < 4; i++)
-          Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
-
         int target = 180;
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 10; i++) {
           System.out.println(
               new String(Copter.tcpTelemetry(hostAddress, target)));
         }
 
-        // socketCopter.close();
         break;
 
       case "11":
         /* ------------------- Vehicle OBD TCP ------------------ */
         printASCII("src/ascii/obd_tcp.txt");
 
-        for (int i = 0; i < 4; i++)
-          Echo.execute(socket, hostAddress, serverPort, requestCodeEcho);
+        try (Socket socketVehicle = new Socket(hostAddress, 29078);
+             FileWriter writerVehicleInfo =
+                 new FileWriter(new File("logs/car_info.txt"));
+             FileWriter writerVehicleData =
+                 new FileWriter(new File("logs/car_telemetry.txt"))) {
 
-        Socket socketVehicle = new Socket(hostAddress, 29078);
+          writerVehicleInfo.write("Info Vehicle app:\n" + LocalDateTime.now() +
+                                  "\n");
 
-        FileWriter writerVehicleInfo =
-            new FileWriter(new File("logs/car_info.txt"));
-        writerVehicleInfo.write("Info Vehicle app:\n" + LocalDateTime.now() +
-                                "\n");
-        FileWriter writerVehicleData =
-            new FileWriter(new File("logs/car_telemetry.txt"));
+          final int minutes = 2;
+          final int secondsPerMinute = 60;
+          final int timeInterval = minutes * secondsPerMinute;
+          float engineTime = 0;
+          while (engineTime < timeInterval) {
+            engineTime = Obd.tcpTelemetry(socketVehicle, writerVehicleData);
+            System.out.println("The engine run time is " + engineTime + "\n");
+          }
 
-        long timeBefore = System.currentTimeMillis();
-        float engineTime = 0;
-        while (engineTime < 60 * 4) {
-          engineTime = Obd.tcpTelemetry(socketVehicle, writerVehicleData);
-          System.out.println("The engine run time is " + engineTime + "\n");
+          writerVehicleInfo.write(LocalDateTime.now() + "\n");
+        } catch (Exception x) {
+          x.printStackTrace();
         }
 
-        writerVehicleInfo.write(LocalDateTime.now() + "\n");
-        writerVehicleInfo.close();
-        writerVehicleData.close();
-        socketVehicle.close();
         break;
 
       default:
@@ -284,11 +306,16 @@ class UserApplication {
       }
     } while (flag == 0);
 
-    /* ------------------ Close UDP sockets ----------------- */
-    if (!socket.isClosed()) {
-      socket.close();
-      System.out.println("\nShuting down UDP sockets...");
+    /* ------------------ Close streams ----------------- */
+    if (socket != null) {
+      try {
+        socket.close();
+        in.close();
+      } catch (Exception x) {
+        x.printStackTrace();
+      }
     }
+    System.out.println("\nShuting down UDP sockets...");
 
     System.out.println(
         "\nx--------------------Hooray! Java application finished successfully!--------------------x");
@@ -307,7 +334,21 @@ class UserApplication {
       }
       Thread.sleep(1500); // pause a little bit to enjoy the view
     } catch (Exception x) {
-      System.out.println(x);
+      x.printStackTrace();
+    }
+  }
+
+  private static void copterWelcome() {
+    System.out.println(
+        "For Ithakicopter UDP telemetry you need to open ithakicopter.jar");
+    System.out.print("Did you open it? If yes press ENTER to continue");
+    try {
+      System.in.read();
+      Thread.sleep(1000); // pause a bit to catch up with the user
+      System.out.println("Press ENTER to exit");
+      Thread.sleep(1000);
+    } catch (Exception x) {
+      x.printStackTrace();
     }
   }
 
@@ -319,8 +360,7 @@ class UserApplication {
     final String ANSI_CYAN = "\u001B[36m";
     final String ANSI_RESET = "\u001B[0m";
 
-    try {
-      Scanner input = new Scanner(new File("src/ascii/welcome.txt"));
+    try (Scanner input = new Scanner(new File("src/ascii/welcome.txt"))) {
       while (input.hasNextLine()) {
         System.out.print(ANSI_CYAN); // add some color!
         System.out.print(input.nextLine());
@@ -331,7 +371,7 @@ class UserApplication {
       System.in.read(); // pause a little bit to enjoy the view
 
     } catch (Exception x) {
-      System.out.println(x);
+      x.printStackTrace();
     }
   }
 
@@ -354,7 +394,7 @@ class UserApplication {
           (System.currentTimeMillis() - timeBefore) / (float)1000 + " seconds");
       socket.close();
     } catch (Exception x) {
-      System.out.println(x + "TCP application failed");
+      x.printStackTrace();
     }
   }
 }

@@ -58,7 +58,7 @@ public class Echo {
           new String(receivePacket.getData(), StandardCharsets.US_ASCII);
       System.out.println("Ithaki responded with: " + message);
     } catch (Exception x) {
-      System.out.println(x);
+      x.printStackTrace();
     }
     return diff;
   }
@@ -118,13 +118,13 @@ public class Echo {
         }
       }
     } catch (Exception x) {
-      System.out.println(x);
+      x.printStackTrace();
     } finally {
       if (fileRto != null) {
         try {
           fileRto.close();
         } catch (Exception x) {
-          System.out.println(x);
+          x.printStackTrace();
         }
       }
     }

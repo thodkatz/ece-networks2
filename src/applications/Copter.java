@@ -24,14 +24,11 @@ public class Copter {
     DatagramPacket receivePacket =
         new DatagramPacket(rxbuffer, rxbuffer.length);
 
-    long timeBefore = System.currentTimeMillis();
-    String telemetry = new String();
+    String telemetry = "";
     try {
       socket.setSoTimeout(3000);
       socket.receive(receivePacket);
       telemetry = new String(rxbuffer, StandardCharsets.US_ASCII);
-      // System.out.print("Time repsonse: " + (System.currentTimeMillis() -
-      // timeBefore)/(float)1000);
       System.out.println("Received data via UDP: " + telemetry);
 
       String[] tokensMotor = telemetry.split("LMOTOR=");
@@ -43,21 +40,17 @@ public class Copter {
       writerCopter.write(tokensTemp[1].substring(1, 6) + " ");
       writerCopter.write(tokensPress[1].substring(0, 7) + "\n");
     } catch (Exception x) {
-      System.out.println(x);
-      System.out.println("RX UDP ithakicopter failed");
+      x.printStackTrace();
     }
     return telemetry;
   }
 
   public static String tcpTelemetry(InetAddress hostAddress, int target) {
     String telemetry = "";
-    Socket socket = new Socket();
-    try {
-      socket = new Socket(hostAddress, 38048);
+    try (Socket socket = new Socket(hostAddress, 38048)) {
       InputStream in = socket.getInputStream();
       OutputStream out = socket.getOutputStream();
-      BufferedReader bf = new BufferedReader(new InputStreamReader(
-          in)); // wrapper on top of the wrapper as java docs recommends
+      BufferedReader bf = new BufferedReader(new InputStreamReader(in));
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
       String command = "AUTO FLIGHTLEVEL=" + target + " LMOTOR=" + target +
@@ -66,7 +59,7 @@ public class Copter {
       out.write(command.getBytes());
       out.flush();
 
-      // in.skipNBytes(427);
+      // skip telemetry info
       for (int i = 0; i < 14; i++) {
         bos.write((bf.readLine() + "\n").getBytes());
       }
@@ -77,14 +70,7 @@ public class Copter {
       // take only the useful data and skip the info ithaki sent
       telemetry = tokens[13];
     } catch (Exception x) {
-      System.out.println(x);
-      System.out.println("Oops... Ithakicopter TCP failed");
-    }
-    try {
-      socket.close();
-    } catch (Exception x) {
-      System.out.println(x);
-      System.out.println("Failed to close socket for ithakicopter TCP");
+      x.printStackTrace();
     }
     return telemetry;
   }
@@ -94,7 +80,8 @@ public class Copter {
    * these two functions are implemented force the autopilot to be used with a
    * combination of these two. We want to send a command only if it is needed
    * and we want to listen all the time to get feedback.
-   *
+   *  
+   * Notes: Work In Progress
    */
   public static void autopilot(DatagramSocket listen, InetAddress hostAddress,
                                int serverPort, Socket send, int lowerBound,
@@ -127,7 +114,7 @@ public class Copter {
         System.out.println("Parsed motor values: " + motor);
       }
     } catch (Exception x) {
-      System.out.println(x);
+      x.printStackTrace();
       System.out.println("AUTOPILOT failed");
     }
   }
